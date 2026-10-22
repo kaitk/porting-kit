@@ -50,12 +50,14 @@ first release.*
 Ask the agent to use the [`port` skill](skills/port/SKILL.md) with the app's repository;
 it never starts on its own, and asking for a survey doesn't authorize the port:
 
-1. **Survey.** It lists everything the server does by layer, with where and how much,
-   and ends with a verdict: what kind of port, whether pages need server rendering, and
-   whether the port is worth it at all.
-2. **Check.** You correct the findings and establish the requirements: what must work,
-   what can change or be omitted, which deployments matter, and what success means.
-3. **Propose.** The session recommends an approach per area, explains trade-offs and
+1. **Questions.** It first asks the few things that decide what to look at: what the port
+   is for, whether the original stays, what must keep working, and which calls matter.
+2. **Survey.** A short document listing what the server does by layer, with where and
+   how much, ending with a verdict: what kind of port, whether pages need server
+   rendering, and whether the port is worth it at all.
+3. **Check.** You correct the findings and settle the remaining requirements: what can
+   change or be omitted, which deployments matter, and what success means.
+4. **Propose.** The session recommends an approach per area, explains trade-offs and
    unknowns, and agrees the implementation scope and verification with you.
 
 The port is then built in checked slices and handed over as a repository a fresh session

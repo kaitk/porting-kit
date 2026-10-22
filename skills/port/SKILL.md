@@ -12,9 +12,9 @@ approve delegation.
 
 ## A new port
 
-Follow [the workflow](../../docs/architecture.md#the-workflow): survey the app by layer,
-give a fit verdict, agree the requirements with the user, propose per area, then build in
-checked slices. Lay out and hand over the port as
+Follow [the workflow](../../docs/architecture.md#the-workflow): ask the few questions that
+shape the survey, survey the app by layer in a short document, give a fit verdict, agree
+the requirements with the user, propose per area, then build in checked slices. Lay out and hand over the port as
 [the port repository](../../docs/port-repository.md) says; the handover must let a fresh
 session maintain it without this conversation or the kit.
 

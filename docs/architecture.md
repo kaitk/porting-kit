@@ -100,29 +100,44 @@ layering does.
 
 ## The workflow
 
-A port starts with three steps (2026-10-03). The session checks its findings with the
-user before proposing the implementation. The purpose is to establish what a good port
-means for this project, including whether to proceed at all.
+A port starts with four steps (2026-10-03; questions first and a short survey since
+2026-10-22). The session checks its findings with the user before proposing the
+implementation. The purpose is to establish what a good port means for this project,
+including whether to proceed at all.
 
-1. **Survey.** The session reads the app and lists everything that needs porting, by
-   layer: frontend and server framework, how the client reaches the server (server
-   functions, an API, or both), serialization, middleware, ORM and database, migrations,
-   auth and its plugins, background work, i18n, and anything else the server runs. Each
-   item names where the app uses it and how much: for example 41 server functions in 9
-   files. It ends with the fit verdict per layer, the kind of port, whether server
-   rendering is needed, and whether the port is worth it.
+1. **Ask first.** Before surveying, the session asks the few questions whose answers
+   change what is worth surveying, each with the answer it recommends from a quick look at
+   the app and its records: what the port is for and how success is judged; whether the
+   source app stays as a supported backend or the port replaces it; which features and
+   deployments must keep working; which calls are hot, and whether usage data or a load
+   model shows it, or whether a TypeScript tail is acceptable; and whether the source app
+   may change first. Three to five questions; the rest wait for step 3. Without a user to
+   answer, as in a replay, the session writes them down and continues on its
+   recommendations.
+2. **Survey.** The session reads the app and lists what needs porting, by layer: frontend
+   and server framework, how the client reaches the server (server functions, an API, or
+   both), serialization, middleware, ORM and database, migrations, auth and its plugins,
+   background work, i18n, shared code the server runs (date and time-zone logic, for
+   example), and anything else the server runs. Each item names where the app uses it and
+   how much: for example 41 server functions in 9 files. It ends with the fit verdict per
+   layer, the kind of port, whether server rendering is needed, and whether the port is
+   worth it.
+
+   Keep the survey short: tables and counts, about 150 to 200 lines, with details only
+   where they change a verdict or a question; the user asks for more where they need it.
+   Its length is most of a survey's time.
 
    Where to look in a Start app: `createServerFn(` per file; `src/start.ts` or
    `createStart` for global middleware and serialization adapters; the server entry for
    request wrappers such as i18n, a CSP nonce, or render context; `AsyncLocalStorage` for
    request-scoped state; i18n calls in server modules and schema messages
-   ([i18n](i18n.md)); and the lockfile, not `package.json`, for versions. The survey
-   document has the sections above, then the questions for the user with a recommended
-   answer each, then a provisional proposal per area.
-2. **Check with the user.** The session presents the list. The user confirms it, corrects
-   it, and adds what code can't show, such as which features may be dropped, which
-   deployments must keep working, and whether the old backend stays.
-3. **Propose.** Only then does the session propose a port for each item, from the
+   ([i18n](i18n.md)); lax input coercion, such as dates revived with `new Date(text)`,
+   which accepts forms the engine chooses; and the lockfile, not `package.json`, for
+   versions.
+3. **Check with the user.** The session presents the survey and the remaining questions,
+   each with a recommended answer, including each applicable recipe's "Choices for the
+   user". The user confirms the list, corrects it, and adds what code can't show.
+4. **Propose.** Only then does the session propose a port for each item, from the
    recipes, or marks the item as having no recipe yet.
 
 ### Establish the requirements

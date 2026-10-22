@@ -213,3 +213,16 @@ mapping, and the checks the generator can't translate. A differential test again
 app, on inputs built from the schemas, is the generator's proof in every port, so it
 doesn't depend on the app having a conformance suite. Generated code is one file per
 schema module, which makes a module a unit of work for a person or an agent.
+
+## Questions first, then a short survey
+
+Decided 2026-10-22, from the survey pilots of task 001. Changes "The workflow" of
+2026-10-03.
+
+The session asks the three to five questions that decide what is worth surveying before
+it surveys, then writes a survey of about 150 to 200 lines, mostly tables and counts, and
+asks the rest. In the pilots a Codex session spent 4.75 of its 7.6 minutes writing a
+538-line survey in one pass and 2.5 minutes reading; the length, not the reading, set the
+time. Questions such as whether the original backend stays or which calls are hot change
+the survey's scope, so asking them last wasted it. The survey no longer ends with a
+provisional proposal, which contradicted proposing only after the user's check.
