@@ -119,7 +119,7 @@ claiming the next run validates the same workflow.
     a reading guide at the top of the architecture.
 - **Translated schema messages,** open after the run, resolved the same day: the app's
   valibot messages called Paraglide on the server, against its own API contract, and the
-  native backend answered English. Snowtime task 094 moves the app to keys; the kit
+  native backend answered English. Snowtime task 095 moves the app to keys; the kit
   gained `docs/i18n.md` and a line in the skill.
 
 ## Acceptance criteria
