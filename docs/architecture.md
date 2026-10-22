@@ -154,6 +154,11 @@ The questions that shape the design:
   remains a supported alternative or the port replaces it.
 - Required compatibility: API and error behavior, database and migrations, existing
   accounts and sessions, clients, page behavior, and any in-flight protocols at cutover.
+  This includes lax input coercion the survey found: whether the port accepts what the
+  app's engine accepts, such as `new Date(text)`'s legacy forms (`2026-9-24`, `-1`) or
+  `Number("")` as 0, or refuses it as a recorded difference. The schema generator's
+  `js_date.rs` keeps Node's dates; refusing is simpler but answers some requests the app
+  accepts with an error.
 - Target language and framework constraints, acceptable dependencies and runtime costs,
   and whether a TypeScript fallback is acceptable for particular work.
 - Rendering, per group of pages: server rendering in V8, static shells, or static files,
