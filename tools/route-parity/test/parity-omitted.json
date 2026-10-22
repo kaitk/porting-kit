@@ -1,0 +1,5 @@
+{
+  "app": "fixture",
+  "sources": [{ "kind": "hono", "module": "api.ts#api" }],
+  "omitted": [{ "reason": "the fixture leaves deletion out", "routes": ["DELETE /api/items/:id"] }]
+}

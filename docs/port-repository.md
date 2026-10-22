@@ -144,7 +144,8 @@ of files. Do not create empty documents merely to fill the layout.
 
 Start `docs/port-status.md` with the source repository, baseline commit, kit provenance,
 and the scope agreed with the user. Add a row per meaningful feature or area; use finer
-rows where compatibility, implementation, or source version differs. A useful row records:
+rows where compatibility, implementation, or source version differs. A useful row records (the kit's route parity check gives the route-level part, with its
+omissions):
 
 - Source paths or symbols and the relevant commit; target modules and routes.
 - Coverage: complete for the agreed scope, partial, deferred, deliberately omitted,

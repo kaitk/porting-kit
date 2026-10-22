@@ -1,0 +1,7 @@
+{
+  "name": "route-parity-test",
+  "private": true,
+  "dependencies": {
+    "hono": "4.12.0"
+  }
+}
