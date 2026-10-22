@@ -16,6 +16,9 @@ export interface Config {
   differential?: {
     // A command that reads [name, value] JSON lines and answers one verdict line each.
     runner: string
+    // The runtime the app's verdicts come from: node (the default), its production runtime
+    // for most apps, or bun, in the generator's own process.
+    runtime?: 'node' | 'bun'
     // The app's own decoder, module#export, called as decode(schema, value); without it the
     // test revives as rust.revive describes and validates.
     decode?: string

@@ -68,6 +68,7 @@ variant, a regex with lookaround or backreferences, a message that depends on th
 | `rust.derives` | Derives besides `Deserialize`, for `*` or by name. |
 | `differential.runner` | A command reading `[name, value]` lines and answering `run`'s verdict per line. |
 | `differential.decode` | Optional `file#export`: the app's own decoder, called as `decode(schema, value)`. |
+| `differential.runtime` | `node` (the default) or `bun`: the runtime the app's verdicts come from, its production runtime. |
 | `differential.samples` | Values to try besides the built-in ones. |
 | `differential.exclude` | Sample values left out, each group with its reason: a decided difference. |
 
@@ -77,7 +78,11 @@ It builds inputs from the IR: values each schema accepts, from a pool of samples
 schemas' own literals and defaults, combined into objects that pass the checks across
 fields; then each field removed, replaced by every sample, and an extra key added. It runs
 each through the app's schema (or its decoder) and the runner, and compares the first
-issue's key, parameters, and message, or the normalized value.
+issue's key, parameters, and message, or the normalized value. The app's verdicts come
+from the app's production runtime, `differential.runtime`: `node` by default, from a
+bundle of the app's schema modules, probe, and decoder built with `bun build
+--target=node`, or `bun`, in the generator's own process. Building the inputs runs in
+Bun either way; it only picks which values to try.
 
 Dates are compared as the strings they were revived from, so it checks which dates a
 schema accepts, not the time each one means. `test/date.mjs` checks the time: it compares

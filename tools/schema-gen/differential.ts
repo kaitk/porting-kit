@@ -5,9 +5,12 @@
 // message. The inputs are built from the IR: values each schema accepts, combined into
 // valid objects, then each field removed or replaced by every sample value.
 import { spawnSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { load } from './config'
 import type { Node } from './ir'
+import { oracle, reviveFor } from './oracle'
 
 const [configPath, ...rest] = process.argv.slice(2)
 const limit = rest[0] === '--limit' ? Number(rest[1]) : 4000
@@ -84,46 +87,10 @@ const uniquePool = [...new Map(pool.map((v) => [JSON.stringify(v), v])).values()
 )
 for (const reason of new Set(excluded.values())) console.log(`excluded: ${reason}`)
 
-// The transport's revival, as rust.revive describes it, for checking parts of an input.
-function reviveFor(schema: Schema, value: unknown): unknown {
-  if (value === null || value === undefined) return value
-  switch (schema.type) {
-    case 'date':
-      return revive.dates && typeof value === 'string' ? new Date(value) : value
-    case 'boolean':
-      if (revive.booleans && value === 'true') return true
-      if (revive.booleans && value === 'false') return false
-      return value
-    case 'optional':
-    case 'nullable':
-    case 'nullish':
-    case 'exact_optional':
-      return reviveFor(schema.wrapped, value)
-    case 'array':
-      return Array.isArray(value) ? value.map((item) => reviveFor(schema.item, item)) : value
-    case 'object':
-    case 'loose_object': {
-      if (typeof value !== 'object' || Array.isArray(value)) return value
-      const out: Record<string, unknown> = { ...(value as Record<string, unknown>) }
-      for (const [key, entry] of Object.entries(schema.entries)) {
-        if (key in out) out[key] = reviveFor(entry, out[key])
-      }
-      return out
-    }
-    case 'variant': {
-      if (typeof value !== 'object' || Array.isArray(value)) return value
-      const record = value as Record<string, unknown>
-      const option = schema.options.find((o: Schema) => o.entries[schema.key].literal === record[schema.key])
-      return option ? reviveFor(option, value) : value
-    }
-    default:
-      return value
-  }
-}
 
 function accepts(id: string, value: Json) {
   const schema = schemas.get(id)
-  return !schema['~standard'].validate(reviveFor(schema, structuredClone(value))).issues
+  return !schema['~standard'].validate(reviveFor(revive, schema, structuredClone(value))).issues
 }
 
 // Values each node accepts, from the sample pool up.
@@ -191,46 +158,6 @@ function cases(id: string): Json[] {
   return [...new Map(out.map((v) => [JSON.stringify(v), v])).values()].slice(0, limit)
 }
 
-// Dates come back as the strings they were revived from, as the Rust keeps them.
-function restoreDates(output: unknown, input: unknown): unknown {
-  if (output instanceof Date) return input
-  if (Array.isArray(output)) return output.map((item, i) => restoreDates(item, (input as unknown[])?.[i]))
-  if (output && typeof output === 'object') {
-    return Object.fromEntries(
-      Object.entries(output).map(([k, v]) => [k, restoreDates(v, (input as Record<string, unknown>)?.[k])]),
-    )
-  }
-  return output
-}
-
-let decode: ((schema: Schema, value: unknown) => unknown) | undefined
-if (config.differential.decode) {
-  const [file, name] = config.differential.decode.split('#')
-  decode = (await import(join(app, file)))[name]
-}
-
-// oxlint-disable-next-line typescript/no-explicit-any -- a valibot issue
-function verdict(issue: any) {
-  const recorded = probe?.(issue)
-  return { ok: false, issue: { key: recorded?.key ?? null, params: recorded?.params ?? {}, message: issue.message } }
-}
-
-function app_(schema: Schema, value: Json) {
-  if (decode) {
-    try {
-      return { ok: true, value: restoreDates(decode(schema, structuredClone(value)), value) }
-    } catch (error) {
-      // oxlint-disable-next-line typescript/no-explicit-any -- ValiError
-      const issues = (error as any)?.issues
-      if (!issues) throw error
-      return verdict(issues[0])
-    }
-  }
-  const result = schema['~standard'].validate(reviveFor(schema, structuredClone(value)))
-  if (result.issues) return verdict(result.issues[0])
-  return { ok: true, value: restoreDates(result.value, value) }
-}
-
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical)
   if (value && typeof value === 'object') {
@@ -244,13 +171,61 @@ function canonical(value: unknown): unknown {
 }
 
 const lines: string[] = []
-const expected: { name: string; input: Json; app: unknown }[] = []
+const expected: { name: string; file: string; input: Json; app?: unknown }[] = []
 for (const root of ir.inputs) {
-  const schema = schemas.get(root.node)
   for (const input of cases(root.node)) {
     lines.push(JSON.stringify([root.name, input]))
-    expected.push({ name: root.name, input, app: app_(schema, input) })
+    expected.push({ name: root.name, file: root.file, input })
   }
+}
+
+// The cases above are built in this process; the app's verdicts come from the app's own
+// runtime: Node by default, as most apps run in production, or Bun in this process.
+const runtime = config.differential.runtime ?? 'node'
+const [probeFile, probeName] = config.probe?.split('#') ?? []
+const [decodeFile, decodeName] = config.differential.decode?.split('#') ?? []
+if (runtime === 'bun') {
+  const decode = decodeFile ? (await import(join(app, decodeFile)))[decodeName] : undefined
+  const answer = oracle({ revive, decode, probe })
+  for (const e of expected) e.app = answer(schemas.get(ir.inputs.find((r) => r.name === e.name)!.node), e.input)
+} else if (runtime === 'node') {
+  // A bundle of the app's schema modules, probe, and decoder for Node, answering
+  // [file, export, value] lines.
+  const files = [...new Set(ir.inputs.map((r) => r.file))]
+  const dir = mkdtempSync(join(tmpdir(), 'schema-gen-'))
+  const entry = join(dir, 'entry.ts')
+  writeFileSync(
+    entry,
+    [
+      `import { createInterface } from 'node:readline'`,
+      `import { oracle } from ${JSON.stringify(join(import.meta.dir, 'oracle.ts'))}`,
+      ...files.map((f, i) => `import * as m${i} from ${JSON.stringify(join(app, f))}`),
+      probeFile ? `import { ${probeName} as probe } from ${JSON.stringify(join(app, probeFile))}` : 'const probe = undefined',
+      decodeFile ? `import { ${decodeName} as decode } from ${JSON.stringify(join(app, decodeFile))}` : 'const decode = undefined',
+      `const modules: Record<string, any> = { ${files.map((f, i) => `${JSON.stringify(f)}: m${i}`).join(', ')} }`,
+      `const answer = oracle({ revive: ${JSON.stringify(revive)}, decode, probe })`,
+      `const out: string[] = []`,
+      `for await (const line of createInterface({ input: process.stdin })) {`,
+      `  const [file, name, value] = JSON.parse(line)`,
+      `  out.push(JSON.stringify(answer(modules[file][name], value)))`,
+      `}`,
+      `process.stdout.write(out.join('\\n') + '\\n')`,
+    ].join('\n'),
+  )
+  const bundle = join(dir, 'oracle.mjs')
+  const built = spawnSync(process.execPath, ['build', entry, '--target=node', '--outfile', bundle], { encoding: 'utf8' })
+  if (built.status !== 0) throw new Error(`bundling the app's schemas for Node failed:\n${built.stderr}`)
+  const ran = spawnSync('node', [bundle], {
+    input: `${expected.map((e) => JSON.stringify([e.file, e.name, e.input])).join('\n')}\n`,
+    encoding: 'utf8',
+    maxBuffer: 1 << 30,
+    stdio: ['pipe', 'pipe', 'inherit'],
+  })
+  rmSync(dir, { recursive: true, force: true })
+  if (ran.status !== 0) throw new Error(`the app's schemas failed on Node with status ${ran.status}`)
+  ran.stdout.trim().split('\n').forEach((line, i) => (expected[i].app = JSON.parse(line)))
+} else {
+  throw new Error(`differential.runtime is node or bun, not ${runtime}`)
 }
 
 const run = spawnSync('sh', ['-c', config.differential.runner], {
