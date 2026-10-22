@@ -30,6 +30,17 @@ Into `rust.out`, one file per schema module, plus `runtime.rs` and `mod.rs`:
 
 The port calls `runtime::parse::<T>(value)` and maps the `Issue` to its own error.
 
+With `rust.revive.dates`, it also writes `js_date.rs`: V8 13.6's `Date.parse` (Node 24),
+ported under V8's BSD license, with the legacy forms V8 accepts beyond ISO 8601, such as
+`2026-9-24`, `10/22/2026`, `Oct 22 2026 10:00 GMT+2`, or `-1`. A JavaScript backend
+commonly revives dates with `new Date(text)` (a JSON reviver, Zod's `z.coerce.date()`),
+whose lenient forms the specification leaves to each engine. For an app on Node,
+`rust.dateParse` calls `js_date::date_parse(text, to_utc)`, where `to_utc` reads a local
+time in the process's time zone, as the app's process does; `js_date::utc` is that for a
+process in UTC. Bun accepted the same forms in a spot check (2026-10-22); Deno and
+browsers are not checked. Refusing the legacy forms instead is a deliberate difference the
+port records in `differential.exclude`.
+
 What it cannot translate it calls by name, as a hook the port writes in `rust.hooks`:
 `v.check` and `v.partialCheck` functions, and `v.transform`. Each module's header lists
 its hooks with the app's source. A hook on a string takes `&str`, on an object the
@@ -67,6 +78,12 @@ schemas' own literals and defaults, combined into objects that pass the checks a
 fields; then each field removed, replaced by every sample, and an extra key added. It runs
 each through the app's schema (or its decoder) and the runner, and compares the first
 issue's key, parameters, and message, or the normalized value.
+
+Dates are compared as the strings they were revived from, so it checks which dates a
+schema accepts, not the time each one means. `test/date.mjs` checks the time: it compares
+`js_date.rs` with Node's `Date.parse` on 40,069 strings (the forms V8 knows, strings built
+from date-like pieces, and date-shaped strings, 5,683 of which parse), in UTC and in a
+fixed-offset zone.
 
 ## Known limits
 

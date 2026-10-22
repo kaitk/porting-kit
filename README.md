@@ -118,3 +118,6 @@ workers with a restart budget.
 
 Licensed under either of [Apache License 2.0](LICENSE-APACHE) or [MIT](LICENSE-MIT), at
 your option.
+
+`tools/schema-gen/js_date.rs`, which the schema generator copies into a port, is ported from
+V8 and keeps V8's BSD license in its header; a port's binary must reproduce that notice.

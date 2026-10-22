@@ -9,7 +9,8 @@ export interface RustOptions {
   // The Rust type of a date, which deserializes from the wire's string.
   dateType: string
   // A function from &str to Option<_> that accepts what the app's transport revives as a
-  // date (only with revive.dates).
+  // date (only with revive.dates). For an app on Node, it calls the generated
+  // js_date::date_parse, V8's Date.parse.
   dateParse?: string
   // Where module M's hooks live, with {module} for M.
   hooks: string
@@ -699,7 +700,7 @@ export function emitRust(ir: Ir, options: RustOptions): RustOutput {
   files['mod.rs'] = `${header}
 #![allow(clippy::all, unused_mut, unused_variables, unused_imports, dead_code)]
 
-${['runtime', ...used].sort().map((m) => `pub mod ${m};`).join('\n')}
+${['runtime', ...(revive.dates ? ['js_date'] : []), ...used].sort().map((m) => `pub mod ${m};`).join('\n')}
 
 /// An input schema's verdict on a value, by the app's export name, for the kit's
 /// differential test.

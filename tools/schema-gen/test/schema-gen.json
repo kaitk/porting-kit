@@ -13,12 +13,6 @@
     "derives": { "*": ["Debug"] }
   },
   "differential": {
-    "runner": "cargo run -q --manifest-path rust/Cargo.toml",
-    "exclude": [
-      {
-        "values": ["2026-9-24", "-1", "0", "7", "100", "1.5", "ABC-123", "abc-123"],
-        "reason": "the fixture's date parser takes ISO 8601 only, not V8's legacy forms"
-      }
-    ]
+    "runner": "cargo run -q --manifest-path rust/Cargo.toml"
   }
 }

@@ -28,7 +28,10 @@ const header = [
   `Kit ${revision(kit)}; command: bun <kit>/tools/schema-gen/cli.ts ${relative(process.cwd(), resolve(configPath))}`,
 ]
 const { files: emitted, hooks } = emitRust(ir, { ...config.rust, header })
-emitted['runtime.rs'] = `${header.map((l) => `// ${l}`).join('\n')}\n${readFileSync(join(import.meta.dir, 'runtime.rs'), 'utf8')}`
+const copied = ['runtime.rs', ...(config.rust.revive?.dates ? ['js_date.rs'] : [])]
+for (const name of copied) {
+  emitted[name] = `${header.map((l) => `// ${l}`).join('\n')}\n${readFileSync(join(import.meta.dir, name), 'utf8')}`
+}
 
 const out = resolve(base, config.rust.out)
 const stale: string[] = []
