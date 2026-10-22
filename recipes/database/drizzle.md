@@ -3,7 +3,7 @@ title: Drizzle on SQLite to rusqlite
 layer: database
 status: proven # for Snowtime's scope: SQLite in-process, Drizzle's SQL migrations
 checked: 2026-10-22
-applies: Drizzle ORM with the SQLite or libSQL dialect and SQL migration files, the schema kept
+applies: Drizzle ORM with the SQLite or libSQL dialect and its SQL migration folders, the schema kept
 versions:
   drizzle-orm: 1.0.0-rc.4 (the Turso dialect)
   rusqlite: 0.40.2 (SQLite 3.53.2 bundled)
@@ -22,8 +22,9 @@ either can migrate it.
 
 ## When it applies
 
-The app uses Drizzle with SQLite or libSQL, keeps its migrations as Drizzle's SQL files
-with a journal, and the port keeps the schema.
+The app uses Drizzle with SQLite or libSQL, keeps its migrations as Drizzle's SQL
+folders (Drizzle 1.0: `<yyyyMMddHHmmss>_<name>/migration.sql`, with no `_journal.json`),
+and the port keeps the schema.
 
 It doesn't apply as written when:
 

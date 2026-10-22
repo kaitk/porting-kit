@@ -4,7 +4,12 @@ How the kit works now: what it is for, its shape, the workflow a porting session
 and what goes in. Why each part came to be this way is in [decisions](decisions.md); the
 decisions a port reuses are in the [catalogue](catalogue.md). Task numbers such as 081.22
 or 084 refer to snowtime's and snowtime-native's task records;
-[the port repository](port-repository.md) says where they live.
+[the port repository](port-repository.md) says where they live. Bare subtask numbers
+such as (17) are snowtime-native's subtasks of task 081.
+
+A survey needs the workflow, "Starting from server functions", the kinds of port,
+rendering, and whether the port is worth it. "Shape", "Layers", and "What goes in"
+describe the kit itself.
 
 ## Goal
 
@@ -104,8 +109,15 @@ means for this project, including whether to proceed at all.
    functions, an API, or both), serialization, middleware, ORM and database, migrations,
    auth and its plugins, background work, i18n, and anything else the server runs. Each
    item names where the app uses it and how much: for example 41 server functions in 9
-   files. It ends with the kind of port, whether server rendering is needed, and the
-   verdict on whether the port is worth it.
+   files. It ends with the fit verdict per layer, the kind of port, whether server
+   rendering is needed, and whether the port is worth it.
+
+   Where to look in a Start app: `createServerFn(` per file; `src/start.ts` or
+   `createStart` for global middleware and serialization adapters; the server entry for
+   request wrappers such as i18n, a CSP nonce, or render context; `AsyncLocalStorage` for
+   request-scoped state; and the lockfile, not `package.json`, for versions. The survey
+   document has the sections above, then the questions for the user with a recommended
+   answer each, then a provisional proposal per area.
 2. **Check with the user.** The session presents the list. The user confirms it, corrects
    it, and adds what code can't show, such as which features may be dropped, which
    deployments must keep working, and whether the old backend stays.
@@ -169,9 +181,8 @@ nor the first conversation.
 An app whose client calls server functions, as Snowtime does, is a supported starting
 point. Server functions come in four kinds, which the survey counts:
 
-1. **Calls:** input in, JSON out. Mechanical to move. Of Snowtime's 41, 32 were these and
-   9 needed changes, such as a cookie, the request's headers, or a GET that wrote; none
-   was kind 4 (task 084, "Transferability").
+1. **Calls:** input in, JSON out. Mechanical to move, though some need changes, such as
+   a cookie, the request's headers, a GET that writes, or an answer with internal columns.
 2. **HTTP semantics:** cookies, redirects, files, or streams. These map onto HTTP, with
    care.
 3. **Rich serialization:** `Date`, `Map`, promises, or streams in Start's serializer
@@ -183,24 +194,14 @@ point. Server functions come in four kinds, which the survey counts:
 ### The default recipe: move to an API
 
 A Rust server can serve Start's server functions only by following Start's private,
-unversioned protocol (task 081.02), so the default port goes through a middle step: the
-app keeps its server functions and gains the JSON API beside them, as task 084 did. Each
-server function gets an operation (method, path, input and output schemas), its logic
-sits in a rule shaped `(db, scope, input)` that both the server function and the API
-call, and conformance tests over HTTP define what the Rust port must pass. Once every
-call has moved, the server functions go, for both backends (task 084, 2026-10-03).
+unversioned protocol (task 081.02), so the default port goes through a middle step in the
+TypeScript app: a JSON API beside the server functions, which then go. The
+[server functions recipe](../recipes/server/server-functions.md) has the steps. Keeping
+both was rejected: two wire formats drift, every test runs twice, and the API costs no
+more CPU (snowtime task 084).
 
-The client keeps one frontend for both backends through one client module, whose
-transports reach the API over HTTP or, during a server render, in process (tasks 084 and
-089). A service layer that offers server functions and the API side by side is possible,
-but the kit advises against keeping both: two wire formats drift (dates, `undefined`
-against `null`, `Map`), every test would have to run both ways, and the conformance suite
-covers only the API. It buys nothing measurable either: task 084 measured the JSON API at
-or below the server functions' CPU on Bun. Server functions stay only as a bridge while
-calls move.
-
-Before the middle step, the session checks that each server function can move, and
-reports one of three verdicts for each:
+The survey checks that each server function can move, and reports one of three verdicts
+for each, counted from the app's own code. Check outputs as well as inputs.
 
 - **Transferable:** its input and output are JSON, with dates decoded by the schemas; its
   logic is in a rule or can move into one; its middleware is a check the API can repeat
@@ -212,13 +213,6 @@ reports one of three verdicts for each:
   `FormData`. The report says why and suggests another way, which the user decides on.
 
 The user reviews the report as part of step 2.
-
-The move from server functions to the API is a standard recipe (2026-10-03), not a
-step only Snowtime needed: task 084 does it for all of Snowtime's calls. Its rules
-include that a GET only reads. A read works out what it needs, and only an explicit write
-saves it, so a read that repairs state (an active organization, a cookie, a missing row)
-becomes a derived value plus an idempotent write. The auth library's sliding session is
-the one accepted exception.
 
 ### Clean first, hybrid only as a tradeoff
 
@@ -235,60 +229,10 @@ and what evidence would justify changing that choice.
 Usage and profiles decide where the line goes, not guesses: the app's access logs or
 analytics show which calls are used and how often, and a profile under the load model
 shows where the CPU goes (task 081.12). The hot, central calls are ported natively. A long
-tail of rarely used calls can be left behind. These hybrids are sketches, not yet written
-as recipes:
+tail of rarely used calls can be left behind.
 
-- **The core ported, the long tail as JS jobs.** The app's central calls run in Rust, and
-  rarely used server code runs as its TypeScript in a job lane, later possibly compiled by
-  Perry (subtask 04). This fits an app with many server functions for features few people
-  use, where the core ports easily. Examples are payment or cloud SDKs, PDF or XLSX
-  generation, and an auth flow its Rust library lacks. Auth itself is ported as
-  owned code (task 081.42); a job is the fallback for a flow it doesn't have yet. Its rules (2026-10-06):
-  - **Not the renderers.** Jobs run in their own lane, with their own bundle, an
-    admission budget below timer calls, and a pool that starts on demand and exits when
-    idle, since a rarely used job shouldn't hold memory. A slow job never blocks pages.
-  - **Trusted like the TypeScript server.** A job can reach the network. It gets only the
-    secrets its job kind names, passed explicitly, and not the renderers' restrictions.
-  - **The database only through the host,** preserving this design's single writer and
-    admission controls. Snowtime task 043 records the driver failure and contention
-    that informed that choice; it is not a general prohibition on SQLite clients in
-    multiple processes. A Drizzle-based library uses Drizzle's `sqlite-proxy` driver,
-    whose callback forwards each statement to the host's lanes. State a library keeps in
-    memory, such as a rate limiter's counters, moves to the database, because a job
-    process can exit at any time.
-  - **A job kind declares three settings:** its secrets, whether it reaches the network,
-    and whether it reads or writes the database.
-  - **The engine follows the code.** Pure computation runs on either engine. Code that
-    needs Node's APIs (`node:crypto`, `Buffer`, `AsyncLocalStorage`), as most SDKs do,
-    runs on Bun, because `deno_core` has no Node layer. The survey
-    classifies each candidate by its settings and the Node APIs it uses, which picks the
-    engine or rules the hybrid out.
-
-  Open: interactive transactions over the proxy, which would hold the writer across JS
-  round trips (batches only, or a short deadline); and Bun-only jobs on V8-only images,
-  which must either ship Bun or drop the feature. A job that streams its answer, such as
-  an AI SDK's, has no recipe yet.
-
-  This is a planned job-host design. Snowtime's rendering proves useful embedding and
-  host-call techniques, but does not prove a general TypeScript job runner. A first job
-  must establish its request/result contract, authentication and authorization boundary,
-  queue and execution limits, cancellation, failure recovery, and side-effect behavior.
-  In particular, a cancelled caller does not establish that a payment or other external
-  write did not happen; the feature needs its own retry and idempotency policy. Record
-  the job's source version and tests in the port's coverage record like a native feature.
-
-- **Server functions served from Rust**, for apps where moving to an API costs too much,
-  such as hundreds of server functions of kinds 1 to 3 (2026-10-05). The host
-  answers `/_serverFn/<id>`, decodes and encodes Start's serialization format, and
-  repeats Start's checks (`Sec-Fetch-Site`), redirects, and headers. Start is open
-  source, so the protocol can be read; the cost, which this hybrid accepts, is that it
-  can change with any Start release, which is why task 081.02 chose the API. The recipe
-  pins Start's version and lets the conformance tests catch a change. First check whether
-  Start can generate stable function IDs rather than ones from the build's hash; if it
-  can, the IDs no longer change with every build, and only the serialization format is
-  left to track. A cheaper variant decodes each call in the isolate and dispatches to
-  a Rust rule.
-- **Kind 4** has no Rust path: it stays in the isolate, or the feature is redesigned.
+These hybrids are sketched in [hybrids](hybrids.md): the core ported with the long tail as
+TypeScript jobs, server functions served from Rust, and kind 4, which has no Rust path.
 
 ## Kinds of port
 
@@ -303,6 +247,10 @@ The survey decides which of these the port is, since each changes the recipe:
   standing constraint. After cutover the contract can change freely, and the TypeScript
   server tests are ported to Rust or retired. The recipe adds cutover, data, and rollback.
   Not written yet.
+
+When production runs on a remote database such as Turso, which the kit doesn't cover
+(the database recipe is for a local file), the port is a second backend for the
+deployments that can use a local file, and production stays on the TypeScript app.
 
 Either kind can cover an agreed subset and can change direction later. A port that stops
 following the original keeps the provenance and tests it still needs; it does not have
@@ -343,6 +291,10 @@ of what to port. Task 081's numbers set expectations: an API action costs 8–11
 app CPU natively, a rendered page only 1.5–2× less, and a sign-in 1.3× less; one
 renderer brings the server to about 220 MB RSS at peak, and each further one adds about
 50 MiB (081.01, on dataset M in Docker on a Mac, for the part of the app ported so far).
+
+For an estimate, weight these ratios by the app's own request mix from its access logs
+or load model, and add the renderers' memory; without such data, say the gain is unknown
+rather than guess.
 
 A port fits well when the server's work is auth, validation, and database reads: backends
 for a frontend, CRUD apps, small and stable domains, hot paths that are API calls, and

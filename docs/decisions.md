@@ -160,7 +160,7 @@ and conditions for reconsidering it.
 
 The general job-host recipe is still unproven. Rendering supplies useful techniques;
 jobs need their own execution resources and capability contracts, as the
-[architecture](architecture.md#clean-first-hybrid-only-as-a-tradeoff) describes.
+[hybrids](hybrids.md) describe.
 
 ## Validate initialization and continued maintenance separately
 

@@ -75,12 +75,15 @@ byte comparison catches such changes when the source pin moves.
 
 The session asks these in the requirements step.
 
-1. **Which OAuth providers to keep.** Each provider has its own profile mapping and a
+1. **Upgrade the app to Better Auth 1.7.7 first.** The reference code implements 1.7.7,
+   whose stored OAuth state differs from 1.7.6's (`auth-state:<state>` identifiers). An
+   app on an older 1.7 release upgrades first, or the port follows its version.
+2. **Which OAuth providers to keep.** Each provider has its own profile mapping and a
    fake for tests. Ask whether any can go; Snowtime kept Google, GitHub, and Microsoft.
-2. **Whether passwords stay scrypt.** Recommend keeping Better Auth's scrypt hashes, so
+3. **Whether passwords stay scrypt.** Recommend keeping Better Auth's scrypt hashes, so
    both backends verify each other's users; AWS-LC's scrypt cut sign-in p95 under load
    from 86–88 ms to 24–29 ms (081.08).
-3. **Whether the session cookie cache stays off.** Snowtime's port reads the session row
+4. **Whether the session cookie cache stays off.** Snowtime's port reads the session row
    on every check, since the database is local, which makes revocation immediate. Keep it
    off unless the app depends on `session_data`.
 

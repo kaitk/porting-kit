@@ -62,8 +62,11 @@ processes to start, confine, and restart, and stays parked behind the same inter
 4. **In-process API calls.** The bootstrap's fetch goes to the host's router through
    `oneshot`, with the page request's cookie and client address attached by the host;
    pages may only read.
-5. **Serve the client build** and pass its manifest, so hydration finds its assets.
-6. **Compare pages:** the byte comparison of rendered HTML against the TypeScript server,
+5. **What the server entry did.** The app's server entry may wrap each render in i18n,
+   a CSP nonce, or a request context; the host passes these with each page request
+   instead (Snowtime: the cookie, a fresh nonce, and the locale, in `adapter/contract.ts`).
+6. **Serve the client build** and pass its manifest, so hydration finds its assets.
+7. **Compare pages:** the byte comparison of rendered HTML against the TypeScript server,
    then a hydration check in a browser.
 
 ## Pitfalls

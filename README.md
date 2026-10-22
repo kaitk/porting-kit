@@ -9,9 +9,9 @@ The first direction is a Rust server with local SQLite, starting from SolidJS, T
 Start, Drizzle, and Better Auth. It grows layer by layer, so an app that shares only the
 backend stack still reuses those parts.
 
-Early: one recipe, and the first crates are being extracted from the first port,
-[snowtime-native](https://github.com/Snowhound/snowtime-native). Recipes and crates
-change between commits.
+Early: a recipe for each layer of one stack, proven on one port,
+[snowtime-native](https://github.com/Snowhound/snowtime-native), and no crates yet.
+Recipes change between commits.
 
 [Architecture](docs/architecture.md) · [Decisions](docs/decisions.md) ·
 [Catalogue](docs/catalogue.md) · [The port repository](docs/port-repository.md) ·

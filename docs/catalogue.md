@@ -3,7 +3,7 @@
 Each entry gives the decision, the evidence, what was rejected, and when it applies to
 another app and when it doesn't, so a session reuses it rather than copying it blindly.
 It starts with task 081's. An entry still open says so and names the subtask that settles
-it:
+it; a bare number such as (17) is snowtime-native's subtask 081.17:
 
 These are evidence-backed starting points. A port records its own accepted choice,
 applicability, and later changes; it need not follow a new catalogue revision. Historical

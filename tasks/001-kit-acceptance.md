@@ -80,6 +80,47 @@ For each failure, distinguish a kit omission from a model/tool limitation, an un
 stack, a missing requirement, or a faulty fixture. Fix or document the cause before
 claiming the next run validates the same workflow.
 
+## Runs
+
+### Pilot 1: survey only (2026-10-22)
+
+- **Scope:** stage 1 up to the requirements step. The session surveyed, gave a fit
+  verdict, and wrote down its questions with recommended answers; no user answered and
+  nothing was built.
+- **Inputs:** the kit at `743b9f4`; Snowtime at `adcedc7`, the first parent of `2f13db0`,
+  with `tasks/081-native-backend.md` and `tasks/079-static-route-shells.md` removed from
+  the checkout, since they hold this port's plan. Tasks 078 and 080 still mention that a
+  native backend was planned. No reference code was opened.
+- **Agent:** Claude Opus 5.5 in Claude Code, a fresh subagent with only its brief, no
+  subagents of its own; about 6.5 minutes and 150k tokens. Read about 11 kit files and
+  20 app files in full, and grepped about 60 more.
+- **Result:** a 488-line survey. It reached the decisions the first port made: a second
+  backend for self-hosting with production staying on Vercel and Turso, the app moved to
+  a JSON API first, server rendering in V8, and Better Auth upgraded to 1.7.7. Its 17
+  questions covered what the maintainer decided in task 081, plus the change rate (104
+  server commits in 10 days) as a maintenance risk.
+- **Gaps it found, and what changed:**
+  - No recipe for the move to an API, the largest piece of work for this app: added
+    `recipes/server/server-functions.md`.
+  - The kit quoted task 084's 32/9 transferability split without its criteria, anchoring
+    a survey of the same app; the pilot counted 37/4 because it didn't check outputs
+    (five project functions returned audit columns). The count is gone from the
+    architecture, and the recipe and the survey step say to check outputs.
+  - No survey template or advice on where to look in a Start app: added to the
+    workflow's survey step, with request-scoped `AsyncLocalStorage` and the server entry.
+  - The auth recipe didn't say its reference implements Better Auth 1.7.7: now the first
+    choice for the user.
+  - The frontend recipe missed the server entry's i18n, CSP nonce, and render context:
+    added as a step.
+  - No method for the gain estimate, and no framing for a production on a remote
+    database: added to the architecture.
+  - A stale README, Drizzle's "journal" wording, and bare subtask numbers: fixed.
+  - The hybrid sketches cost reading time in a survey: moved to `docs/hybrids.md`, with
+    a reading guide at the top of the architecture.
+- **Open:** schema messages translated at run time. The app's valibot messages call
+  Paraglide (`src/server/schemas.ts`); snowtime-native answers English messages, and
+  nothing records how that matched the app at its pin, so no recipe says yet.
+
 ## Acceptance criteria
 
 ### Workflow and handover

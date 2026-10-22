@@ -26,6 +26,7 @@ recipes/
   database/
     drizzle.md
   server/
+    server-functions.md
     hono.md
   frontend/
     solid-start.md
