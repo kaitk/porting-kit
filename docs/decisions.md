@@ -111,6 +111,19 @@ The layout follows the goose repositories: `README.md` is for people who use the
 decision instead. Recipes and the catalogue keep the kit's own formats, which the goose
 repositories have no counterpart for.
 
+## Kit development records live in a private repository
+
+Decided 2026-10-22. Changes "Machine and human documentation are split", which kept the
+kit's tasks in `tasks/`.
+
+The kit's task records, pilot runs, rubrics, and fixture scripts move to a private
+development repository, `porting-kit-dev`; this repository keeps what a porting session
+uses: the skill, recipes, docs, and tools. In the survey pilots both agents read
+whatever they found, including git history, and the kit's `tasks/` held a previous
+pilot's survey and the evaluator's conclusions, which had to be stripped from each
+fixture. A port's own task records are unaffected: they stay in the port. Kit task
+numbers ("task 001") refer to the development repository.
+
 ## The port owns its lifecycle after initialization
 
 Decided 2026-10-22. Clarifies "The kit is a template that generates a port repository"

@@ -17,7 +17,7 @@ Substantial doc drafts and requested prose reviews follow
 - A number carries its source: the port, its task record, and the commit measured. A
   claim without a measurement says so.
 - Match the document's format. Recipes follow `recipes/README.md`, tasks follow
-  `tasks/README.md`, with concrete acceptance criteria. Use sentence-case headings,
+  the development repository's `tasks/README.md`, with concrete acceptance criteria. Use sentence-case headings,
   backticks for code identifiers and commands, and descriptive links. Wrap prose at
   about 90 characters.
 - Use prose for connected ideas, lists for steps or separate items, and tables for

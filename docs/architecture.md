@@ -172,9 +172,6 @@ library does: snowtime-native compared better-auth-rs flow by flow and kept its 
 code (tasks 081.39, 081.40, and 081.42). A generated file records its inputs and command.
 Subagents run only with the user's explicit approval, and the workflow works without them.
 
-The target agents and their replay results are recorded in
-[task 001](../tasks/001-kit-acceptance/README.md).
-
 ### Implement, verify, and hand over
 
 Shared behavior passes the source app's conformance and comparison checks. A deliberate
@@ -394,7 +391,7 @@ rest:
 App-specific code stays out: the rules, pages, and schemas are the app's. The crates hold
 only what every port of the stack repeats.
 
-The first auth and lane boundaries remain proposals. [Task 002](../tasks/002-crate-boundary-review.md)
-reviews the seams and the behavior that extraction must preserve. Keeping integration
+The first auth and lane boundaries remain proposals. The kit's review of them (task 002)
+records the seams and the behavior that extraction must preserve. Keeping integration
 code in a port is an intended outcome when extracting it would make the crate depend on
 that port's schema, HTTP policy, or runtime ownership.

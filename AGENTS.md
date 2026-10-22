@@ -13,7 +13,9 @@ read the file a task touches before starting it.
 - Recipes and their format: `recipes/README.md`; the entry point a porting session loads:
   `skills/port/SKILL.md`
 - Layout and local setup: `docs/development.md`
-- Task tracking: `tasks/` (see `tasks/README.md`)
+- Task tracking: the kit's private development repository, `porting-kit-dev`, holds the
+  task records, pilot runs, and evaluation material. They stay out of this repository: a
+  porting agent reads what it finds, and a session under test must not find the answers.
 - The first port, where recipes and crates come from: snowtime-native
   (github.com/Snowhound/snowtime-native), and its task records in `docs/tasks/`
 - Rules for particular work: `agents/writing.md` (docs, recipes, tasks, and prose

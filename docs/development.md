@@ -20,7 +20,6 @@ docs/
 recipes/         one recipe per library under its layer, in the format of recipes/README.md
 skills/port/     the index skill a porting session loads
 tools/           generators a port runs, each with its README (schema-gen)
-tasks/           the kit's own task records (tasks/README.md)
 .claude/skills/  the writing review skill
 ```
 
