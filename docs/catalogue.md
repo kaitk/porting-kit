@@ -84,21 +84,12 @@ belong in [the port repository](port-repository.md#documentation-that-stays-usef
   passkeys after comparison. The old gate describes that experiment, not an open
   instruction to repeat it unchanged.
 
-  2026-10-08: the kit's auth recipe uses better-auth-rs for the flows. Fix its
-  gaps in a fork, offer each fix upstream, and depend on the fork only where a fix
-  isn't accepted. What better-auth-rs lacks goes in a separate crate beside it: the
-  closest usable subsets of task 081's port with Snowtime's policies taken out, such
-  as Better Auth's signed session cookies and their per-request check, origin and URL
-  checks, the error body, scrypt, and the `rusqlite` store on the host's lanes. Task
-  081.28's hand-ported flows stay as the reference and fallback for gaps, and its
-  conformance tests, byte comparison, fake OAuth provider, and software passkey
-  authenticator judge a better-auth-rs port of the same routes.
-
-  Tried in snowtime-native's 081.39 (2026-10-10): sessions, sign-out, OAuth, and API key
-  creation on better-auth-rs; organizations, passkeys, and password sign-in as app code.
-  Same bar, binary +4.7%, auth code +230 lines plus a fork. The kit maintains a shared
-  better-auth-rs fork for ports choosing that recipe (2026-10-11); each port pins and
-  updates its chosen dependencies independently. The
+  Every flow in port-owned code, from task 081.28's hand-port (2026-10-22, task 081.42).
+  better-auth-rs was tried in 081.39 for sessions, sign-out, OAuth, and API key creation:
+  the same bar passed, but auth code grew by 230 lines plus a +970/−320 fork, the binary
+  by 4.7%, and v1.0.0-alpha.5 later required the system ICU library. Rejected as a
+  dependency; it stays a reference. The conformance tests, byte comparison, fake OAuth
+  provider, and software passkey authenticator judge the owned code. The
   [auth recipe](../recipes/auth/better-auth.md) has the numbers and the steps.
 
 - AWS-LC for scrypt (08)

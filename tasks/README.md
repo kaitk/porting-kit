@@ -47,4 +47,4 @@ tracked there. The kit's tasks hold what spans ports.
 |---|---|
 | 001: the kit's acceptance criteria | Initial replay, independent maintenance, reusable content, and later apps/frameworks. |
 | 002: the first crate boundary review | Proposed ownership and runtime contracts; maintainer decision before extraction. |
-| snowtime-native 081.41: the first crates | The crate boundaries await a second opinion; the store waits on a check against better-auth-rs v1.0.0-alpha.5. |
+| snowtime-native 081.41: the first crates | Lane, Better Auth sessions, and Better Auth compatibility, after 081.42 moves the port back to its own auth code. |

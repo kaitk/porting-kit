@@ -65,7 +65,8 @@ The auth recipe uses better-auth-rs where it matches Better Auth and keeps app c
 it where it doesn't. Its gaps are fixed in one fork that every port shares, and each fix
 is offered upstream. Hand-porting every flow, as task 081.28 did, was rejected as the
 default because upstream then maintains none of it; 081.28 stays the reference and
-fallback ([the recipe](../recipes/auth/better-auth.md)).
+fallback ([the recipe](../recipes/auth/better-auth.md)). Replaced on 2026-10-22 by
+[the kit owns its Better Auth compatibility code](#the-kit-owns-its-better-auth-compatibility-code).
 
 ## The port lives in its own repository, with the app as a submodule
 
@@ -142,9 +143,9 @@ agreed hybrid can be the appropriate result.
 
 Choose tested libraries, recipes, crates, generators, and port-owned code per area.
 Subagents require explicit user approval and are used only where their task warrants
-them. Approval of the port itself is not delegation approval. The documentation targets
-Sol 6.1 and Claude Opus 5.5 without requiring either agent's private memory; actual
-replays must establish how well the workflow performs.
+them. Approval of the port itself is not delegation approval. The skill stays lean,
+since it loads into every porting session: it routes to the docs and recipes, and code it
+points at can speak for itself. The kit must not cost a session more tokens than it saves.
 
 ## Retained TypeScript can be a maintained part of a port
 
@@ -174,3 +175,27 @@ This tests whether the port can keep working well after initialization.
 SvelteKit and other framework tests follow. The render benchmark candidates in
 snowtime-native task 081.15 are candidates to assess, not proven end-to-end port targets.
 Successful rendering alone does not validate auth, data, API behavior, or maintenance.
+
+## The kit owns its Better Auth compatibility code
+
+Decided 2026-10-22, snowtime-native task 081.42. Replaces "Auth goes through
+better-auth-rs, with one fork for its gaps".
+
+The auth recipe ports Better Auth with code the kit and the port own, starting from task
+081.28's hand-port, which passes the same bar with no library. better-auth-rs becomes a
+reference to borrow from, with attribution, not a dependency. The reasons:
+
+- The library didn't reduce the code a port owns: auth went from 8,246 lines to 8,476
+  plus a fork of +970/−320, the binary grew 4.7%, and peak RSS 3–10% (task 081.39).
+- Matching the installed TypeScript library byte for byte, on its rows and cookies, kept
+  most of the behavior in port code and fork patches anyway.
+- Upstream moves fast in alpha: v1.0.0-alpha.5 came 828 commits after the pin, with
+  larger store traits, and links the system ICU C++ library unconditionally.
+
+A second opinion from Codex reached the same recommendation. The kit's crate plan
+follows: the lane, Better Auth sessions, and Better Auth compatibility, with optional
+parts per feature added as ports prove them. Owning the code makes Better Auth's
+protocol changes the kit's job; the byte comparison catches them when a port moves its
+source pin. Reconsider if an upstream release passes a port's whole bar and removes
+substantial owned code, or if a port no longer needs to interoperate with the TypeScript
+library.

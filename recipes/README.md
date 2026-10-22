@@ -34,16 +34,15 @@ the recipe fits and whether it's current:
 
 ```yaml
 ---
-title: Better Auth to better-auth-rs
+title: Better Auth in port-owned Rust
 layer: auth
 status: proven # proven, partial, or not written
 checked: 2026-10-11 # the last date the steps were run against these versions
 applies: Better Auth 1.7 on SQLite, with the app's schema kept
 versions: # what the recipe was proven with
   better-auth: 1.7.7
-  better-auth-rs: ...
 evidence: # where the numbers come from
-  - snowtime-native 081.39
+  - snowtime-native 081.28
 ---
 ```
 

@@ -67,8 +67,8 @@ adapter or backend port.
 
 Record source and kit revisions, model and agent-tool versions, provided context and
 reference access, environment, authorized tools, and any approved delegation. Sol 6.1
-and Claude Opus 5.5 are the initial target agents; record results independently rather
-than inferring that success on one establishes success on the other.
+and Claude Opus 5.5 are the target agents for now, and open models are to be tried later;
+record results per agent rather than inferring one from another.
 
 Retain the survey and fit verdict, questions and user answers, accepted proposal, design
 decisions, checks and their limits, measurements, handover, user interventions, and gaps.

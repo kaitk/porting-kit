@@ -1,16 +1,22 @@
 # 002: Review the first crate boundaries against port ownership
 
-Status: todo (review recorded 2026-10-22; boundaries await the maintainer's decision)
+Status: in-progress (review recorded 2026-10-22; the three crates agreed the same day)
 
 Review the three-crate proposal in snowtime-native task 081.41 against the kit's goal:
 initialize a well-founded port that can maintain and change its own design. The
 recommendations below are proposals, not approved API designs or completed extraction.
 Implementation remains in snowtime-native task 081.41 with that port as the first consumer.
 
+The review was written while the third crate was still a better-auth-rs storage adapter.
+On 2026-10-22 the kit chose to own its Better Auth compatibility code instead
+([decision](../docs/decisions.md#the-kit-owns-its-better-auth-compatibility-code)), so the
+third crate holds 081.28's hand-ported handlers. The sections below are updated for that.
+
 ## Recommendation
 
-Keep three crates in one workspace. Admission/execution, Better Auth compatibility, and
-the better-auth-rs storage adapter have different consumers and dependency lifecycles.
+Keep three crates in one workspace: the lane, Better Auth sessions, and Better Auth
+compatibility. Admission/execution, sessions, and the auth handlers have different
+consumers and dependency lifecycles.
 Coordinated early releases are convenient, but must not require a port to adopt all three
 or upgrade unrelated pieces together. A single crate with features is not needed to
 share a repository. Narrow features can still be useful within each crate.
@@ -41,7 +47,7 @@ job panic and continues with the same worker state. The renderer owns restart su
 and its budget (task 081.17). Those are separate mechanisms; a general restart facility
 is not already present in the two proposed source files.
 
-## Better Auth compatibility
+## Better Auth sessions
 
 Keep cookie signing, the session check, and password compatibility independent of
 better-auth-rs and of the lane crate. A synchronous function taking `&Connection` lets
@@ -73,64 +79,48 @@ Hidden policy and representation choices need explicit treatment:
   salt, hash, and error behavior when moving its implementation. If a real consumer
   needs cookies without SQLite or AWS-LC, assess a narrow feature then.
 
-## better-auth-rs on SQLite
+## Better Auth compatibility
 
-Extract storage execution and the transaction mechanism behind the smallest proven
-interface. Put the adapter's database-execution trait in the adapter crate, and have the
-port implement it on its own wrapper. Having the Tokio-only lane crate implement an
-auth-owned trait would pull the dependency in the wrong direction. Do not introduce a
-fourth interfaces crate merely to avoid a small port-owned wrapper.
+The supported auth handlers and their SQLite operations, from 081.28's hand-port: sign-in,
+sign-out, OAuth with a module per provider, account listing and unlinking, API keys,
+passkeys, organizations, and the error page. Optional features per area, added as ports
+prove them; an area no port has proven isn't offered.
 
-The interface must preserve connection ownership, serialized writes, bounded admission,
-and transaction cleanup on cancellation. A transaction holds the same writer throughout
-its async callback. Its lifetime deadline is separate from admission; a running SQLite
-statement is not interrupted merely because the callback deadline passes. Hooks must
-apply inside transaction calls as well as ordinary writes (the auth spike and 081.39).
+Keep the same seams as the sessions crate. Handlers take a connection or a small
+port-implemented execution trait, not the lane crate, so a port keeps its own admission.
+Writes that span several statements keep one writer from start to finish, and a cancelled
+caller leaves no half-written state. Hooks the app runs on user and session creation, such
+as login domains and refusing unverified sign-ups, apply on every path that creates them.
 
-`Schema` and `LaneSession` in `library/mod.rs` are additional couplings: the latter makes
-an existing row active because Snowtime has no `active` column. Column conversion and
-unsupported-plugin implementations also encode a specific compatibility profile. Keep
-that profile explicit. Refusing an unmounted plugin is useful; it does not constitute
-support for that plugin in another port.
+Keep HTTP composition in the port at first: the host's request and response types, Axum,
+wire errors, the client-address header, and form normalization. Extract a shared
+refusal type only where two handlers need it. The compatibility profile stays explicit:
+Better Auth's version, the schema columns, the session table without an `active` column,
+and the providers and plugins covered.
 
-Keep most of `bridge.rs` as port-owned integration initially. Besides the client-IP
-header name, it knows the host's request and response, Axum, wire errors, a concrete auth
-schema, auth paths, callback-body rewriting, and earlier form normalization. Extract a
-reusable error/refusal mechanism only where the adapter needs it; HTTP composition is a
-reasonable template responsibility.
+better-auth-rs is a reference for providers and protocol details, borrowed with
+attribution under its MIT or Apache-2.0 license. Its storage traits and transactions are
+not part of the design.
 
-Check refusal propagation through transactions as well as ordinary calls. The current
-bridge tracks refusal in task-local state, while the transaction worker is spawned.
-That path needs an explicit test before the extracted API promises 503 preservation.
+## Implementation order
 
-## Upstream check and implementation order
-
-Task 081.41 reports a large upstream rewrite at better-auth-rs v1.0.0-alpha.5. This review
-does not establish the trait diff, the quoted commit count, or compatibility with that
-release. Recheck upstream's traits, supported flows, and the fork patches before freezing
-the adapter API. Record what is actually verified.
-
-Recommended order: lane, session compatibility, then the library adapter after that
-check. Treat an upstream upgrade and a mechanical extraction as distinct changes with
-their own verification. The first two crates need not wait for the alpha-library work.
-Pin dependencies to fetchable exact revisions as already agreed; no sibling-checkout
-dependency may be required by CI or images.
+Lane, then sessions, then compatibility, each a change of its own with its own
+verification. The first two need nothing from the third. Pin the crates to fetchable
+exact revisions; no sibling-checkout dependency may be required by CI or images.
 
 Future TypeScript jobs are a reason to keep execution, storage, and HTTP policy separate.
-They are not a reason to build an unproven universal executor now. The first job still
-needs its own runtime, capability, cancellation, and database-access proof.
+They are not a reason to build an unproven universal executor now.
 
 ## Acceptance criteria
 
-- [ ] The maintainer's boundary choices recorded in decisions and reflected in 081.41
+- [x] The maintainer's boundary choices recorded in decisions and reflected in 081.41
+      (2026-10-22)
 - [ ] Each crate builds and tests independently, with its supported compatibility scope
       and dependency direction documented
-- [ ] Session renewal with a busy writer, transaction cancellation and refusal, shared
+- [ ] Session renewal with a busy writer, multi-statement writes under cancellation, shared
       admission deadlines, and permit ownership preserved by meaningful tests
 - [ ] App policy, schema assumptions, clocks, wire types, instrumentation, and HTTP
       composition each have an explicit owner
-- [ ] Upstream compatibility checked before the adapter API is finalized; no upgrade is
-      presented as already verified by the old pin's tests
 - [ ] The existing conformance, byte comparison, hardening, page, dependency, and
       performance gates in 081.41 pass at the extracted revisions
 - [ ] The port's setup, architecture, dependency provenance, and maintenance instructions

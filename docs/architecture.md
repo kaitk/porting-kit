@@ -114,13 +114,11 @@ means for this project, including whether to proceed at all.
 
 ### Establish the requirements
 
-Read the repository's current architecture, task records, tests, and deployment setup
-before asking for facts already recorded. Distinguish a current decision from a rejected
-experiment or an old task's starting assumptions. Present a short fit assessment: good
-fit, workable with named gaps, or poor fit, with evidence and uncertainty per layer.
-Technical transferability and whether the work is worthwhile are separate judgments.
+Read the app's own records before asking for facts they hold, and tell a current
+decision from an abandoned experiment. The fit verdict is good, workable with named gaps,
+or poor, per layer with its evidence; whether the port is worthwhile is a separate call.
 
-Resolve the questions that affect the design with the user:
+The questions that shape the design:
 
 - The purpose of the port: hosting cost, resource limits, deployment options, ownership,
   maintainability, or another concrete need; how success will be judged.
@@ -135,61 +133,36 @@ Resolve the questions that affect the design with the user:
 - The intended maintenance workflow: selected upstream features, independent development,
   dependency updates, deployment, and who will operate the result.
 
-Ask focused questions in stages. Explain a recommendation and its trade-offs rather than
-making the user choose implementation details without context. Record the agreed scope,
-open questions, and acceptance checks in the port. If new evidence would change that
-agreement, bring the specific change back to the user.
+Record the agreed scope, open questions, and acceptance checks in the port, and bring a
+change to them back to the user.
 
 ### Choose the implementation tools
 
-Choose per area between a tested library, kit crate, proven recipe, mechanical code
-generation, port-owned code, and an agreed hybrid. Assess actual compatibility,
-maintenance cost, and measured behavior. Availability of a Rust library alone does not
-establish that it implements the app's use of its TypeScript counterpart: snowtime-native
-tasks 081.39 and 081.40 kept organization and passkey code after comparing the libraries.
+Per area: a tested library, a kit crate, a recipe, a generator, port-owned code, or an
+agreed hybrid. A Rust library existing doesn't mean it does what the app's TypeScript
+library does: snowtime-native compared better-auth-rs flow by flow and kept its own auth
+code (tasks 081.39, 081.40, and 081.42). A generated file records its inputs and command.
+Subagents run only with the user's explicit approval, and the workflow works without them.
 
-Use generators for repeatable transformations with a checked contract. The port records
-which files are generated, their inputs and command, and whether regeneration overwrites
-local edits. Handwritten application code remains ordinary code the port can change.
-Evaluate a representative slice before scaling an uncertain approach across the app.
-
-Subagents are optional and require the user's explicit approval before they are started.
-Approval to port an app does not imply approval to delegate. When approved, give them
-bounded tasks with useful interfaces, such as an independent review or an isolated domain;
-record what they checked. A single-agent session must be able to follow the same workflow.
-
-The documentation and skill should work with Sol 6.1 and Claude Opus 5.5 as target agents,
-and remain readable by developers without either tool. These are validation targets,
-not claims that the full workflow has passed on both. Record the actual model, tool
-environment, user interventions, and result of each replay in [task 001](../tasks/001-kit-acceptance.md).
+The target agents and their replay results are recorded in
+[task 001](../tasks/001-kit-acceptance.md).
 
 ### Implement, verify, and hand over
 
-Implement the agreed design in reviewable slices. Port behavior deliberately: use the
-target language's ownership, error handling, concurrency, and library conventions where
-they fit, and keep a source map useful enough to review later changes. Structural
-similarity is a maintenance aid, not a requirement to reproduce an unsuitable design.
+Shared behavior passes the source app's conformance and comparison checks. A deliberate
+difference has a decision and its own tests, and is never counted as parity. Include
+migrations, refusal and cancellation, and end-to-end flows, since the 081.30 audit found
+faults the per-route comparison missed. A performance claim names its workload,
+environment, and commits.
 
-Define the verification bar from the agreed scope. Shared behavior uses the source app's
-conformance and comparison checks. Deliberate differences have a decision and tests for
-the port's intended behavior; they are not silently masked or counted as parity. Include
-state and migrations, refusal and cancellation behavior, and relevant end-to-end flows.
-Performance claims name the workload, environment, source and port commits, and limits
-of the measurement. Whole-system review complements checks on individual ported routes.
-
-Before handover, verify a clean-checkout build and the documented development and check
-commands. Leave the current architecture, decisions, coverage, rejected approaches,
-known issues, and operating instructions in the port. Preserve evidence that another
-session can retrieve; an expiring scratch directory is not the only record of a decision.
+Before handover, check a clean-checkout build and the documented commands. Evidence for a
+decision lives in the port, not only in a scratch directory.
 
 ### Continue from the port's own state
 
-Later work starts with the port's instructions and current architecture, its source
-baseline and coverage, and relevant tasks. Establish whether the requested change is an
-upstream feature, a port-specific feature, a dependency update, or a repair. Evaluate
-the change against the current design, run the applicable checks, and update the records
-in the same change. The [maintenance workflow](port-repository.md#maintaining-the-port)
-does not require a kit checkout, a kit upgrade, or the initiating conversation.
+Later work starts from the port's records and follows
+[maintaining the port](port-repository.md#maintaining-the-port); it needs neither the kit
+nor the first conversation.
 
 ## Starting from server functions
 
@@ -269,8 +242,8 @@ as recipes:
   rarely used server code runs as its TypeScript in a job lane, later possibly compiled by
   Perry (subtask 04). This fits an app with many server functions for features few people
   use, where the core ports easily. Examples are payment or cloud SDKs, PDF or XLSX
-  generation, and an auth flow its Rust library lacks. Auth itself ports to better-auth-rs
-  (task 081, question 5); a job is the fallback for a flow it doesn't have yet. Its rules (2026-10-06):
+  generation, and an auth flow its Rust library lacks. Auth itself is ported as
+  owned code (task 081.42); a job is the fallback for a flow it doesn't have yet. Its rules (2026-10-06):
   - **Not the renderers.** Jobs run in their own lane, with their own bundle, an
     admission budget below timer calls, and a pool that starts on demand and exits when
     idle, since a rarely used job shouldn't hold memory. A slow job never blocks pages.
@@ -397,13 +370,14 @@ rest:
   maintainable project. Measure against an agreed load model (snowtime task 078).
 - Findings that took measurement or failure to learn, such as Start addressing server
   functions by a build hash (task 081.02), what each renderer costs in memory (task
-  081.01), better-auth-rs hashing passwords with Argon2 where Better Auth uses scrypt, and
+  081.01), a Rust auth library claiming a Better Auth version still differing byte for
+  byte and in stored OAuth state (081.39), and
   V8 keeping a bundle's whole source at two bytes per character if one character is above
   U+00FF, which an ASCII-only minify avoids (task 081.22).
 - The decisions task 081 made, as a [catalogue](catalogue.md), so a session reuses them instead of
   deciding again.
 - Mapping tables from each layer to its port: Drizzle to `rusqlite` with SQL strings, a
-  server function to a handler, Better Auth to better-auth-rs (task 081.03).
+  server function to a handler, Better Auth to owned Rust (tasks 081.03 and 081.42).
 - **Crates** for what every port of this stack repeats, extracted from task 081's port with
   their tests and versioned:
   - the request extractors (`InOrganization`, `AsUser`, `Public`) with the API's error body;
