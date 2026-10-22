@@ -12,6 +12,8 @@ docs/
   architecture.md    how the kit works: goal, shape, workflow, kinds of port, what goes in
   decisions.md       the kit's own decisions, dated, with their reasons
   catalogue.md       the decisions a port reuses, with their evidence
+  hybrids.md         sketches of ports that keep some TypeScript running
+  i18n.md            internationalization in a port
   port-repository.md the layout a generated port has
   development.md     this page
 recipes/         one recipe per library under its layer, in the format of recipes/README.md

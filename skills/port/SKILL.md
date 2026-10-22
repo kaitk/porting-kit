@@ -18,6 +18,10 @@ checked slices. Lay out and hand over the port as
 [the port repository](../../docs/port-repository.md) says; the handover must let a fresh
 session maintain it without this conversation or the kit.
 
+The API answers the same bytes in every locale; translations stay in the client and the
+page renderer. Where the app's server translates text itself, it changes first
+([i18n](../../docs/i18n.md)).
+
 ## An existing port
 
 Start from the port's own records, not the kit's latest template. Follow

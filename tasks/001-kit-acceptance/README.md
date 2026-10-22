@@ -117,9 +117,10 @@ claiming the next run validates the same workflow.
   - A stale README, Drizzle's "journal" wording, and bare subtask numbers: fixed.
   - The hybrid sketches cost reading time in a survey: moved to `docs/hybrids.md`, with
     a reading guide at the top of the architecture.
-- **Open:** schema messages translated at run time. The app's valibot messages call
-  Paraglide (`src/server/schemas.ts`); snowtime-native answers English messages, and
-  nothing records how that matched the app at its pin, so no recipe says yet.
+- **Translated schema messages,** open after the run, resolved the same day: the app's
+  valibot messages called Paraglide on the server, against its own API contract, and the
+  native backend answered English. Snowtime task 094 moves the app to keys; the kit
+  gained `docs/i18n.md` and a line in the skill.
 
 ## Acceptance criteria
 

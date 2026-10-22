@@ -78,6 +78,10 @@ compared calls byte for byte.
   units, where it checks length.
 - **A GET only reads.** A read that repairs state becomes a derived value plus an
   idempotent write (snowtime task 084).
+- **Refusals answer keys, not translated text.** Schema messages that call the app's i18n
+  library run in the request's locale; answer their key and parameters with an English
+  message, and let the client translate ([i18n](../../docs/i18n.md)).
+
 
 ## Verify
 

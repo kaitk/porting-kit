@@ -115,7 +115,8 @@ means for this project, including whether to proceed at all.
    Where to look in a Start app: `createServerFn(` per file; `src/start.ts` or
    `createStart` for global middleware and serialization adapters; the server entry for
    request wrappers such as i18n, a CSP nonce, or render context; `AsyncLocalStorage` for
-   request-scoped state; and the lockfile, not `package.json`, for versions. The survey
+   request-scoped state; i18n calls in server modules and schema messages
+   ([i18n](i18n.md)); and the lockfile, not `package.json`, for versions. The survey
    document has the sections above, then the questions for the user with a recommended
    answer each, then a provisional proposal per area.
 2. **Check with the user.** The session presents the list. The user confirms it, corrects
