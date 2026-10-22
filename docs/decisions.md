@@ -199,3 +199,17 @@ protocol changes the kit's job; the byte comparison catches them when a port mov
 source pin. Reconsider if an upstream release passes a port's whole bar and removes
 substantial owned code, or if a port no longer needs to interoperate with the TypeScript
 library.
+
+## Generators write the validation, not a copy of a port's code
+
+Decided 2026-10-22, kit task 003.
+
+The kit's first tool, `tools/schema-gen`, generates a port's input validation from the
+app's valibot schemas. Its output is the validation itself, following valibot's run
+order through a small runtime, rather than a reproduction of the first port's
+hand-written field tables, which used a vocabulary only that port had. The port supplies
+what is its own through configuration and named hooks: its types, date parser, error
+mapping, and the checks the generator can't translate. A differential test against the
+app, on inputs built from the schemas, is the generator's proof in every port, so it
+doesn't depend on the app having a conformance suite. Generated code is one file per
+schema module, which makes a module a unit of work for a person or an agent.

@@ -41,6 +41,10 @@ first release.*
 | 🟡 | Better Auth compatibility | The supported auth handlers and their SQLite operations, with optional parts per feature. Extraction planned. |
 | ⚪ | Others | The request extractors, `sql!`, the wire format, the migrator, the in-process edge, the render host, and the conformance harness ([architecture](docs/architecture.md#what-goes-in)). |
 
+| | Tool | Notes |
+|---|---|---|
+| 🟡 | Schema generator | Rust input structs and validation from valibot schemas, with the app's first-issue messages and keys, and a differential test against the app ([README](tools/schema-gen/README.md)). Being proven in snowtime-native task 081.45. |
+
 ## How a port runs
 
 Ask the agent to use the [`port` skill](skills/port/SKILL.md) with the app's repository;
@@ -71,6 +75,9 @@ follow the original selectively or diverge, and adopting kit updates is optional
 - **Crates** hold only what every port of the stack repeats. Each one is optional and
   plugs in alone, and none depends on the frontend framework. Code shaped by one app is
   template code the port owns.
+- **Tools** generate what a port would otherwise write by hand from the app's own
+  definitions, and check the result against the app. What a tool can't translate it
+  names for the port to write, one module at a time.
 - **Honest verdicts.** A port pays off when the server's work is auth, validation, and
   database reads. The survey says when it doesn't: a server built on npm packages with no
   Rust equivalent, an app that mostly renders pages, or a load the TypeScript server

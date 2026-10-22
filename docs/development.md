@@ -1,7 +1,8 @@
 # Development
 
-How the repository is laid out and how a change is checked. The kit has no code to build
-yet; this page grows with the first crates (snowtime-native task 081.41).
+How the repository is laid out and how a change is checked. The kit's code so far is a
+generator in `tools/`, run with Bun; this page grows with the first crates
+(snowtime-native task 081.41).
 
 ## Layout
 
@@ -18,6 +19,7 @@ docs/
   development.md     this page
 recipes/         one recipe per library under its layer, in the format of recipes/README.md
 skills/port/     the index skill a porting session loads
+tools/           generators a port runs, each with its README (schema-gen)
 tasks/           the kit's own task records (tasks/README.md)
 .claude/skills/  the writing review skill
 ```

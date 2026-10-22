@@ -1,0 +1,7 @@
+{
+  "name": "schema-gen-test",
+  "private": true,
+  "dependencies": {
+    "valibot": "1.5.0"
+  }
+}

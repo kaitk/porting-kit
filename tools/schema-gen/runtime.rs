@@ -1,0 +1,283 @@
+//! Valibot's semantics that the generated validators share: issues and their messages,
+//! JavaScript's string lengths, trimming, and number printing. Copied by the porting kit's
+//! schema generator; regenerate rather than edit.
+use serde::de::{Deserialize, DeserializeOwned, Deserializer};
+use serde_json::Value;
+
+/// The first issue valibot reports, with the key and parameters the app's messages carry.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Issue {
+    pub key: Option<&'static str>,
+    pub params: &'static [(&'static str, Param)],
+    pub message: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Param {
+    Number(i64),
+    Text(&'static str),
+}
+
+impl Issue {
+    pub fn keyed(
+        key: Option<&'static str>,
+        params: &'static [(&'static str, Param)],
+        message: &str,
+    ) -> Issue {
+        Issue {
+            key,
+            params,
+            message: message.to_owned(),
+        }
+    }
+
+    /// Valibot's own message: "Invalid <label>: Expected <expected> but received <received>".
+    pub fn default(label: &str, expected: Option<&str>, received: &str) -> Issue {
+        let message = match expected {
+            Some(expected) => format!("Invalid {label}: Expected {expected} but received {received}"),
+            None => format!("Invalid {label}: Received {received}"),
+        };
+        Issue {
+            key: None,
+            params: &[],
+            message,
+        }
+    }
+}
+
+/// The issues of one run: the first, which the API answers, and how many there were, which
+/// decides whether a later pipe step still runs.
+#[derive(Default)]
+pub struct Ctx {
+    pub issue: Option<Issue>,
+    pub count: usize,
+}
+
+impl Ctx {
+    pub fn add(&mut self, issue: Issue) {
+        if self.issue.is_none() {
+            self.issue = Some(issue);
+        }
+        self.count += 1;
+    }
+    pub fn merge(&mut self, other: Ctx) {
+        if self.issue.is_none() {
+            self.issue = other.issue;
+        }
+        self.count += other.count;
+    }
+}
+
+/// An input schema: `check` validates and normalizes the JSON value in place, returning
+/// whether it is typed, as valibot's datasets are.
+pub trait Schema: DeserializeOwned {
+    fn check(value: &mut Value, ctx: &mut Ctx) -> bool;
+}
+
+/// The value, validated against the schema, or valibot's first issue.
+pub fn parse<T: Schema>(mut value: Value) -> Result<T, Issue> {
+    let mut ctx = Ctx::default();
+    T::check(&mut value, &mut ctx);
+    if let Some(issue) = ctx.issue {
+        return Err(issue);
+    }
+    serde_json::from_value(value).map_err(|e| Issue {
+        key: None,
+        params: &[],
+        message: e.to_string(),
+    })
+}
+
+/// The schema's verdict as JSON, for comparing with the app's: the normalized value, or the
+/// first issue.
+pub fn run<T: Schema>(mut value: Value) -> Value {
+    let mut ctx = Ctx::default();
+    T::check(&mut value, &mut ctx);
+    let issue = ctx.issue.or_else(|| {
+        serde_json::from_value::<T>(value.clone()).err().map(|e| Issue {
+            key: None,
+            params: &[],
+            message: format!("deserialize: {e}"),
+        })
+    });
+    match issue {
+        None => serde_json::json!({ "ok": true, "value": value }),
+        Some(issue) => {
+            let params: serde_json::Map<String, Value> = issue
+                .params
+                .iter()
+                .map(|(name, param)| {
+                    let value = match param {
+                        Param::Number(n) => Value::from(*n),
+                        Param::Text(t) => Value::from(*t),
+                    };
+                    (name.to_string(), value)
+                })
+                .collect();
+            serde_json::json!({
+                "ok": false,
+                "issue": { "key": issue.key, "params": params, "message": issue.message },
+            })
+        }
+    }
+}
+
+/// The typed value a hook on an object receives.
+pub fn typed_input<T: DeserializeOwned>(value: &Value, ctx: &mut Ctx) -> Option<T> {
+    match serde_json::from_value(value.clone()) {
+        Ok(typed) => Some(typed),
+        Err(e) => {
+            ctx.add(Issue {
+                key: None,
+                params: &[],
+                message: e.to_string(),
+            });
+            None
+        }
+    }
+}
+
+/// Valibot's _stringify of a received value; `None` is undefined.
+pub fn received(value: Option<&Value>) -> String {
+    match value {
+        None => "undefined".into(),
+        Some(Value::Null) => "null".into(),
+        Some(Value::Bool(b)) => b.to_string(),
+        Some(Value::Number(n)) => js_number(n.as_f64().unwrap_or(f64::NAN)),
+        Some(Value::String(s)) => format!("\"{s}\""),
+        Some(Value::Array(_)) => "Array".into(),
+        Some(Value::Object(_)) => "Object".into(),
+    }
+}
+
+/// A number as JavaScript prints it.
+pub fn js_number(n: f64) -> String {
+    if n.is_nan() {
+        return "NaN".into();
+    }
+    if n.is_infinite() {
+        return if n > 0.0 { "Infinity" } else { "-Infinity" }.into();
+    }
+    if n == 0.0 {
+        return "0".into();
+    }
+    let abs = n.abs();
+    if (1e-6..1e21).contains(&abs) {
+        return format!("{n}");
+    }
+    let text = format!("{n:e}");
+    match text.split_once('e') {
+        Some((mantissa, exponent)) if !exponent.starts_with('-') => format!("{mantissa}e+{exponent}"),
+        _ => text,
+    }
+}
+
+/// A string's length as JavaScript counts it, in UTF-16 units, or an array's.
+pub fn length(value: &Value) -> usize {
+    match value {
+        Value::String(s) => s.encode_utf16().count(),
+        Value::Array(items) => items.len(),
+        _ => 0,
+    }
+}
+
+/// The whitespace String.prototype.trim removes.
+pub fn js_whitespace(c: char) -> bool {
+    matches!(c, '\u{0009}'..='\u{000d}' | ' ' | '\u{00a0}' | '\u{1680}' | '\u{2000}'..='\u{200a}' | '\u{2028}' | '\u{2029}' | '\u{202f}' | '\u{205f}' | '\u{3000}' | '\u{feff}')
+}
+
+/// Applies a string transformation in place; anything else is left as it is.
+pub fn transform(value: &mut Value, f: impl FnOnce(&str) -> String) {
+    if let Value::String(text) = value {
+        *text = f(text);
+    }
+}
+
+pub fn trim(text: &str) -> String {
+    text.trim_matches(js_whitespace).to_owned()
+}
+pub fn trim_start(text: &str) -> String {
+    text.trim_start_matches(js_whitespace).to_owned()
+}
+pub fn trim_end(text: &str) -> String {
+    text.trim_end_matches(js_whitespace).to_owned()
+}
+
+pub fn str_of(value: &Value) -> &str {
+    value.as_str().unwrap_or_default()
+}
+pub fn f64_of(value: &Value) -> f64 {
+    value.as_f64().unwrap_or(f64::NAN)
+}
+
+/// The entries an object schema reads: valibot takes any object, arrays included, whose
+/// indexes are its keys. `None` for anything else.
+pub fn take_entries(value: &mut Value) -> Option<serde_json::Map<String, Value>> {
+    match value {
+        Value::Object(map) => Some(std::mem::take(map)),
+        Value::Array(items) => Some(
+            items
+                .drain(..)
+                .enumerate()
+                .map(|(i, item)| (i.to_string(), item))
+                .collect(),
+        ),
+        _ => None,
+    }
+}
+
+/// One entry of an object or an array, as `input[key]` reads it.
+pub fn entry(value: &Value, key: &str) -> Option<Value> {
+    match value {
+        Value::Object(map) => map.get(key).cloned(),
+        Value::Array(items) => key.parse::<usize>().ok().and_then(|i| items.get(i).cloned()),
+        _ => None,
+    }
+}
+
+/// Valibot's SameValueZero for a literal.
+pub fn same(value: &Value, literal: &Value) -> bool {
+    match (value, literal) {
+        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
+        _ => value == literal,
+    }
+}
+
+/// A field that may be absent, null, or set: an update changes only the fields present,
+/// and null removes a value.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub enum Patch<T> {
+    #[default]
+    Absent,
+    Null,
+    Value(T),
+}
+
+impl<T> Patch<T> {
+    pub fn value(&self) -> Option<&T> {
+        match self {
+            Patch::Value(v) => Some(v),
+            _ => None,
+        }
+    }
+    /// The value, where absent and null mean the same.
+    pub fn into_option(self) -> Option<T> {
+        match self {
+            Patch::Value(v) => Some(v),
+            _ => None,
+        }
+    }
+}
+
+impl<T> From<Option<T>> for Patch<T> {
+    /// An optional field that can't be null: absent or a value.
+    fn from(value: Option<T>) -> Self {
+        value.map_or(Patch::Absent, Patch::Value)
+    }
+}
+
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for Patch<T> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Option::<T>::deserialize(deserializer).map(|v| v.map_or(Patch::Null, Patch::Value))
+    }
+}

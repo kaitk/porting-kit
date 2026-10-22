@@ -47,4 +47,5 @@ tracked there. The kit's tasks hold what spans ports.
 |---|---|
 | 001: the kit's acceptance criteria | Initial replay, independent maintenance, reusable content, and later apps/frameworks. |
 | 002: the first crate boundary review | Three crates agreed 2026-10-22; the review's contracts guide the extraction in 081.41. |
+| 003: input validation generated from valibot schemas | Proven in snowtime-native 081.45; the tool's own tests and a CI check by kit revision. |
 | snowtime-native 081.41: the first crates | Lane, Better Auth sessions, and Better Auth compatibility, after 081.42 moves the port back to its own auth code. |
