@@ -1,0 +1,8 @@
+{
+  "name": "sql-capture-test",
+  "private": true,
+  "dependencies": {
+    "@libsql/client": "0.18.0",
+    "hono": "4.12.0"
+  }
+}

@@ -1,0 +1,1 @@
+{ "app": "fixture", "sources": [{ "kind": "hono", "module": "api.ts#api" }] }

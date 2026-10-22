@@ -20,7 +20,7 @@ docs/
 recipes/         one recipe per library under its layer, in the format of recipes/README.md
 skills/port/     the index skill a porting session loads
 tools/           generators and checks a port runs, each with its README (schema-gen,
-                 route-parity)
+                 route-parity, sql-capture)
 .claude/skills/  the writing review skill
 ```
 

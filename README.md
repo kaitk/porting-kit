@@ -44,6 +44,7 @@ first release.*
 | | Tool | Notes |
 |---|---|---|
 | 🟡 | Route parity check | Which of the app's routes (Hono, Better Auth) a running port implements, with deliberate omissions and their reasons ([README](tools/route-parity/README.md)). Proven in snowtime-native: 106 routes, 70 implemented, 36 omitted. |
+| 🟡 | SQL capture | Each route's SQL from the app while traffic runs, as the porting aid, and a comparison per route with the port: statements, repeats, transactions ([README](tools/sql-capture/README.md)). libsql adapter only. Proven in snowtime-native task 081.48: 69 routes, three port findings. |
 | 🟡 | Schema generator | Rust input structs and validation from valibot schemas, with the app's first-issue messages and keys, and a differential test against the app ([README](tools/schema-gen/README.md)). Proven in snowtime-native task 081.45, where it replaced the hand-written input tables. |
 
 ## How a port runs

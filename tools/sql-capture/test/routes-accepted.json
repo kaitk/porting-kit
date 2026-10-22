@@ -1,0 +1,7 @@
+{
+  "app": "fixture",
+  "sources": [{ "kind": "hono", "module": "api.ts#api" }],
+  "sqlCapture": {
+    "accepted": [{ "reason": "counts per project on purpose", "routes": ["GET /api/projects"], "statements": 4 }]
+  }
+}
