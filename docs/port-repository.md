@@ -132,6 +132,11 @@ evidence rather than making every task repeat the whole project.
 | `docs/known-issues.md` | Active reproducible limitations, their impact, workaround where available, and a link to the owning task. Create it when there is an issue to record. |
 | Deployment and operations docs | Configuration, secrets, migrations, backup and restore, health and diagnostics, release and rollback, and resource limits for the supported deployment. |
 
+A finished task's record leaves the tree: the task index keeps one line for it, and git
+history keeps the record, with links to it pinned at a commit that has it. Keep a full
+record only while work is open or still builds on it. An agent reads whatever it finds,
+so stale records cost every later session time (2026-10-22).
+
 Small projects can combine records; these are responsibilities, not a required number
 of files. Do not create empty documents merely to fill the layout.
 
