@@ -27,6 +27,8 @@ recipes/
     drizzle.md
   server/
     hono.md
+  frontend/
+    solid-start.md
 ```
 
 A layer with no recipe yet has no directory. The index lists it as not written.
