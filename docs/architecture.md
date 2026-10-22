@@ -155,7 +155,11 @@ The questions that shape the design:
 - Required compatibility: API and error behavior, database and migrations, existing
   accounts and sessions, clients, page behavior, and any in-flight protocols at cutover.
 - Target language and framework constraints, acceptable dependencies and runtime costs,
-  rendering needs, and whether a TypeScript fallback is acceptable for particular work.
+  and whether a TypeScript fallback is acceptable for particular work.
+- Rendering, per group of pages: server rendering in V8, static shells, or static files,
+  each with its measured cost ([does the app need server rendering](#does-the-app-need-server-rendering)).
+  Ask it even when the app renders on the server today; keeping that is a choice, not a
+  default.
 - Expected usage and resource budgets, available measurements, and the limits on time,
   compute, and external services for implementation and validation.
 - The intended maintenance workflow: selected upstream features, independent development,
@@ -289,7 +293,8 @@ The survey answers this with the user, and is honest about what each choice cost
   frame; 081.01), search engines see only the frame,
   and the frame's dynamic parts must be kept in step between the app and Rust. Where the
   content is SPA-like anyway and the frame is mostly static, this is the clear choice
-  (2026-10-05).
+  (2026-10-05). The [static shells recipe](../recipes/frontend/static-shells.md) has the
+  steps task 079 took and its measurements.
 - **The built client as static files, and the API alone.** The simplest: no frame from
   the server at all. The content waits for the bundle and the first API calls, which the
   frame option at least shortens by showing the app's shell at once.

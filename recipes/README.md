@@ -30,6 +30,7 @@ recipes/
     hono.md
   frontend/
     solid-start.md
+    static-shells.md
 ```
 
 A layer with no recipe yet has no directory. The index lists it as not written.

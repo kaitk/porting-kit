@@ -36,6 +36,7 @@ deliberate differences and omissions unless the user changes them.
 | Database, ORM | Drizzle     | [drizzle.md](../../recipes/database/drizzle.md)     | proven for SQLite in-process: `rusqlite` with SQL strings, Drizzle's migrator |
 | Server        | Start server functions, then Hono | [server-functions.md](../../recipes/server/server-functions.md), then [hono.md](../../recipes/server/hono.md) | proven for Snowtime: the app moves to a JSON API, then the API ports to Axum |
 | Frontend      | SolidJS with TanStack Start | [solid-start.md](../../recipes/frontend/solid-start.md) | proven for Snowtime's pages: V8 in the host; other frameworks need an adapter |
+| Frontend      | Any, as static page shells | [static-shells.md](../../recipes/frontend/static-shells.md) | partial: built and measured in Snowtime, then not chosen; no V8 in the port |
 
 A library missing here has no recipe: say so in the survey rather than guess. Before
 trusting a recipe, compare the app's versions with its `versions` and put its "Choices
