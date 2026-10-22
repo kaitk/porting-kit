@@ -5,6 +5,11 @@ another app and when it doesn't, so a session reuses it rather than copying it b
 It starts with task 081's. An entry still open says so and names the subtask that settles
 it:
 
+These are evidence-backed starting points. A port records its own accepted choice,
+applicability, and later changes; it need not follow a new catalogue revision. Historical
+measurements retain their original workload and version limits. The maintenance records
+belong in [the port repository](port-repository.md#documentation-that-stays-useful).
+
 - Rendering in an embedded V8 isolate, against page shells (01, task 079)
 - The render engine, chosen from measured inputs: rendering's share of the server's CPU,
   the memory per renderer including a recycle's overlap, whether the framework needs
@@ -25,7 +30,7 @@ it:
   pending in the client; an API refusal during rendering reaches the page as 503 with
   `Retry-After` and keeps a completed renderer warm. Record phase RSS against the
   provisional 2-GiB whole-host budget for M, with no OOM or swap and passing recovery.
-  Open: the four-configuration capacity rerun and valid eight-reader overload in 26.
+  Open: the four-configuration capacity rerun and valid eight-reader overload in 27.
   Results: [native host](https://github.com/Snowhound/snowtime-native/blob/main/docs/architecture/native-host.md)
 - Static files served from disk, behind a CDN or caching proxy (2026-10-08,
   from audit finding M6 in 30). Snowtime runs behind Cloudflare, which caches the
@@ -38,10 +43,15 @@ it:
   `/assets/` and `/brand/`, about 3.4 MB) then takes file reads off the request path.
   The kit asks during setup whether a CDN or caching proxy will front the app, unless
   the repository already answers it (deployment docs, proxy or CDN configuration)
-- A JSON API for both backends, not server functions (02, task 084)
+- A shared JSON API when both backends must serve the same client (02, snowtime task
+  084). The source-app transition needs agreement; a replacement or a framework-bound
+  interface may need another contract. Preserve the transferability assessment and
+  any deliberate changes in the port's coverage record.
 - JSON with dates revived by the schemas, and answers validated in full (task 089).
   Open: columns for the large responses (081 question 2, 02)
-- Routes and modules per domain, mirrored file for file (06, task 089)
+- Routes and modules per domain, with source-to-port correspondence useful for later
+  changes (06, snowtime task 089). Use target-language conventions where appropriate;
+  document a structural difference instead of forcing an unsuitable source layout.
 - Axum, and `rusqlite` with SQL strings over SeaQuery; Rocket, Diesel, and sqlx not
   tried (03, 06)
 - One writer and a pool of readers on WAL; bounded database work that refuses with 503
@@ -68,10 +78,11 @@ it:
   owns admission and one writer. Bound an async transaction's writer lifetime
   separately from admission. Keep the app's signed-cookie check at the boundary.
   This applies to a Better Auth/SQLite port that keeps its schema; applications with
-  attestation policies cannot reuse the spike's passkey mapping. Open: adoption of a
-  pinned better-auth-rs release with public server-only key calls and TypeScript's
-  passkey UV policy, followed by compatibility and HTTP conformance runs. Alpha.3
-  alone does not pass that gate.
+  attestation policies cannot reuse the spike's passkey mapping. At the spike's alpha.3
+  pin, server-only key calls and passkey compatibility blocked adoption. Task 081.39
+  subsequently adopted selected flows on a newer pinned fork; 081.40 retained native
+  passkeys after comparison. The old gate describes that experiment, not an open
+  instruction to repeat it unchanged.
 
   2026-10-08: the kit's auth recipe uses better-auth-rs for the flows. Fix its
   gaps in a fork, offer each fix upstream, and depend on the fork only where a fix
@@ -85,8 +96,9 @@ it:
 
   Tried in snowtime-native's 081.39 (2026-10-10): sessions, sign-out, OAuth, and API key
   creation on better-auth-rs; organizations, passkeys, and password sign-in as app code.
-  Same bar, binary +4.7%, auth code +230 lines plus a fork. The kit keeps one shared fork
-  of better-auth-rs for every port (2026-10-11). The
+  Same bar, binary +4.7%, auth code +230 lines plus a fork. The kit maintains a shared
+  better-auth-rs fork for ports choosing that recipe (2026-10-11); each port pins and
+  updates its chosen dependencies independently. The
   [auth recipe](../recipes/auth/better-auth.md) has the numbers and the steps.
 
 - AWS-LC for scrypt (08)
@@ -98,7 +110,11 @@ it:
   streamed promises or Next.js's server components, needs its own adapter and delivery
   policy, and the survey says so instead of promising one run. Open: the memory target,
   which awaits the maintainer's agreement (01)
-- Conformance tests and byte comparison as the definition of done (081 question 4, 03)
+- Conformance and byte comparison define parity for shared behavior (081 question 4,
+  03). Intentional differences have their own recorded decisions and tests: native
+  input bounds in 081.31 and session-cache behavior in snowtime task 091 are examples.
+  A passing comparison alone does not establish migration safety, overload behavior,
+  or a maintainable handover; the whole-port audit in 081.30 found issues beyond it.
 - The repository layout (task 081, "Repository")
 - HTTP/3 deferred. Open: measured in 09
 

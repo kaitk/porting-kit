@@ -82,6 +82,29 @@ replace. Once code moves into a kit crate or template, the recipe points there i
 
 Reference code is a starting point. The generated port owns its copy.
 
+"Generic" identifies a reusable mechanism, not a promise that a file is independent of
+its original app. Name schema, runtime, clock, wire-format, and lifecycle assumptions as
+well as explicit policy hooks. Separate a proven implementation from a proposed crate
+boundary. A port must be able to retain its own integration code without depending on
+the rest of the kit.
+
+## What the port records
+
+Applying a recipe leaves a short record in the port: recipe revision and tested library
+versions, areas adopted or rejected, source and target locations, local configuration and
+policy, deliberate differences, verification, and known gaps. Link the recipe as evidence;
+keep the port's current decision and the instructions needed to maintain it locally.
+
+For generated code, identify the inputs, generator revision and command, output files,
+and ownership of later edits. For a retained TypeScript feature, include its bundle and
+runtime, host contract, resource and capability limits, and tests. The general job recipe
+remains unwritten until a port proves it.
+
+When a later dependency or feature change touches the area, use the port's current
+requirements to choose the checks and update the record. A new recipe version is useful
+evidence to consider; it does not require the port to adopt its design. See
+[maintaining the port](../docs/port-repository.md#maintaining-the-port).
+
 ## Evidence
 
 Numbers carry their source: a port, its task record, and the commit measured. A claim

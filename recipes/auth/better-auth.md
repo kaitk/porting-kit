@@ -72,8 +72,10 @@ providers, protocol changes as Better Auth moves on, and fixes found by other us
 pays off only while upstream accepts the fixes; otherwise the port owns a fork, an
 adapter, and its own code.
 
-Most of the store doesn't depend on the app. Once it moves into a kit crate, a port's own
-share falls by roughly 1,000 lines.
+Storage and transaction mechanisms are extraction candidates. The amount that can move
+depends on separating schema, policy, clock, and host integration; the reference file's
+line count is not a promised reduction. The first boundaries are reviewed in
+[task 002](../../tasks/002-crate-boundary-review.md) and remain proposals.
 
 ## Choices for the user
 
@@ -281,21 +283,23 @@ fix, and a compat-server change. Keeping the fork:
 ## Reference code
 
 snowtime-native at `2b899e6` (branch `081.39-better-auth-rs`), in
-`crates/server/src/auth/`. Generic means it ports to another Better Auth app on SQLite
-unchanged or with names swapped; policy means it is Snowtime's and gets replaced.
+`crates/server/src/auth/`. These are proven reference implementations at the versions
+above, not standalone kit crates. Generic identifies a reusable mechanism; review the
+file's schema, runtime, clock, and HTTP assumptions before adapting it. Policy is the
+source app's choice and must be checked against the new app's requirements.
 
 | File                       | Lines | What it does                                                                                                     | Generic or policy                                                                                                                                                                           |
 | -------------------------- | ----: | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `library/store.rs`         | 1,080 | The library's store traits on `rusqlite`, on the host's lanes                                                    | Generic: lanes, column mapping, `f64` binds, `'null'` metadata, verification lookups, refusing stores. Policy: `create_user` and `create_session` hooks (login domains, unverified sign-ups) |
-| `library/transaction.rs`   |   129 | Async transactions on a dedicated writer, with their own deadline                                                | Generic                                                                                                                                                                                     |
-| `library/bridge.rs`        |   179 | Host request in, library response out; a lane's refusal kept and answered as the host's 503                       | Generic, apart from the client-address header's name                                                                                                                                       |
+| `library/store.rs`         | 1,080 | Library store traits on `rusqlite`, through the host's lanes | Reusable execution and storage mechanisms; concrete schema, row conversion, clock, IDs, bounds, creation hooks, and unsupported-plugin choices need an owner. |
+| `library/transaction.rs`   |   129 | Async transactions on a dedicated writer, with their own deadline | Reusable mechanism; requires writer ownership through cleanup, cancellation/refusal propagation, and the same hooks as non-transaction calls. |
+| `library/bridge.rs`        |   179 | Host request in, library response out; preserve the host's refusal | Host integration: request/response types, Axum, wire errors, schema, paths, client address, callback encoding, and form normalization. Keep as port-owned code initially. |
 | `library/mod.rs`           |   150 | Builds the library: config, clock, plugins, API key options, the schema with a session that has no `active` column | Mixed: the build is generic; the options are Snowtime's                                                                                                                                     |
 | `library/policy.rs`        |   142 | A plugin mounted first, for the app's `hooks.before`                                                             | The plugin shape is generic; input bounds and login domains are policy                                                                                                                      |
 | `library/providers.rs`     |   157 | Google, Microsoft, and GitHub profiles as Better Auth 1.7.7 reads them, and the fake provider's transport         | Generic per provider                                                                                                                                                                        |
 | `library/tests.rs`         |   182 | Store and transaction tests                                                                                      | Generic                                                                                                                                                                                     |
 | `cookie.rs`                |   109 | better-call's signed cookies                                                                                     | Generic                                                                                                                                                                                     |
-| `session.rs`               |   280 | The session row and its per-request check, with renewal                                                          | Generic; the 30-day and daily renewal settings are the app's                                                                                                                                |
-| `password.rs`              |    90 | Better Auth's scrypt hashes on AWS-LC                                                                            | Generic                                                                                                                                                                                     |
+| `session.rs`               |   280 | Session lookup, creation, and renewal | Reusable compatibility behavior; schema/plugin columns, domains, writer scheduling, expiry, cookie settings, timestamps, IDs, and user-agent bounds are explicit integration choices. |
+| `password.rs`              |    90 | Better Auth's scrypt hashes on AWS-LC | Reusable hash compatibility; app benchmark instrumentation stays outside the crate. |
 | `sign_in.rs`               |   472 | `/sign-in/email`: verify the hash off the database lane, write the session, set the cookie                       | Generic flow, with the app's options                                                                                                                                                        |
 | `callback_urls.rs`         |   101 | Better Auth's checks of callback URLs, for routes still app code                                                 | Generic                                                                                                                                                                                     |
 | `rate_limit.rs`            |    80 | Better Auth 1.7.7's route limits plus the app's custom rules                                                     | Generic rules; custom rules are policy                                                                                                                                                      |

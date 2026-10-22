@@ -45,5 +45,6 @@ tracked there. The kit's tasks hold what spans ports.
 
 | Open work | Remaining outcome or dependency |
 |---|---|
-| 001: the kit's acceptance criteria | Recipes, crates, codemods, the replay of a fresh port, and a second app. |
+| 001: the kit's acceptance criteria | Initial replay, independent maintenance, reusable content, and later apps/frameworks. |
+| 002: the first crate boundary review | Proposed ownership and runtime contracts; maintainer decision before extraction. |
 | snowtime-native 081.41: the first crates | The crate boundaries await a second opinion; the store waits on a check against better-auth-rs v1.0.0-alpha.5. |

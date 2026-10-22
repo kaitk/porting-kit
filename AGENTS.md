@@ -9,6 +9,7 @@ read the file a task touches before starting it.
   `docs/architecture.md`; the layout a generated port has: `docs/port-repository.md`
 - The kit's own decisions, dated, with their reasons: `docs/decisions.md`; the decisions a
   port reuses: `docs/catalogue.md`
+- The port's durable documentation and maintenance workflow: `docs/port-repository.md`
 - Recipes and their format: `recipes/README.md`; the entry point a porting session loads:
   `skills/port/SKILL.md`
 - Layout and local setup: `docs/development.md`
@@ -17,6 +18,11 @@ read the file a task touches before starting it.
   (github.com/Snowhound/snowtime-native), and its task records in `docs/tasks/`
 - Rules for particular work: `agents/writing.md` (docs, recipes, tasks, and prose
   reviews)
+
+The `port` skill is manually invoked only. Reading or editing the kit does not start its
+porting workflow. A port owns its design after initialization; kit updates are optional.
+Subagents for porting work require explicit user approval, even when the port itself is
+authorized. Task 001 tests both initialization and maintenance by fresh sessions.
 
 Follow the recorded decisions; if a change contradicts one, record the new decision in
 `docs/decisions.md`, saying which it replaces, and update `docs/architecture.md`, in the

@@ -109,3 +109,68 @@ The layout follows the goose repositories: `README.md` is for people who use the
 `agents/` holds the rules for agents. Docs and commits name no people and date each
 decision instead. Recipes and the catalogue keep the kit's own formats, which the goose
 repositories have no counterpart for.
+
+## The port owns its lifecycle after initialization
+
+Decided 2026-10-22. Clarifies "The kit is a template that generates a port repository"
+and replaces any implication in "kept in sync" that continued synchronization is required.
+
+The main outcome is a well-founded port that stays maintainable after its initial
+session. Its own repository holds setup, current architecture, source and coverage
+records, decisions, successful and failed experiments, verification, and operating
+instructions. Later sessions start from that state, without requiring the original chat.
+
+The original-app pin records a baseline. Feature coverage and intentional differences
+explain what the port actually implements, including selectively adopted later changes.
+The port may change direction, omit features, stop following the original, or be
+discontinued. Kit provenance and kit dependency versions are separate from that baseline;
+adopting newer kit code or guidance is optional. The port's own dependency maintenance
+and verification continue regardless.
+
+This replaces a template-sync model with local ownership. The cost is keeping useful
+records and executable checks in each port; that is part of the deliverable rather than
+an obligation to remain compatible with the kit's latest design.
+
+## The port skill is manually invoked and requirements lead the work
+
+Decided 2026-10-22. Extends "A survey and the user's check come before any proposal".
+
+Only the user starts the skill. It reads the repository and its records, assesses fit,
+asks about requirements, and proposes solutions before implementing the agreed scope.
+Surveying alone does not authorize a port. A poor-fit verdict, a smaller scope, or an
+agreed hybrid can be the appropriate result.
+
+Choose tested libraries, recipes, crates, generators, and port-owned code per area.
+Subagents require explicit user approval and are used only where their task warrants
+them. Approval of the port itself is not delegation approval. The documentation targets
+Sol 6.1 and Claude Opus 5.5 without requiring either agent's private memory; actual
+replays must establish how well the workflow performs.
+
+## Retained TypeScript can be a maintained part of a port
+
+Clarified 2026-10-22. Extends "Layers swap independently, and a clean port comes first";
+the existing native-first recommendation remains a starting point for discussion.
+
+An infrequent feature may remain TypeScript when its rewrite costs more than the
+benefit and the user accepts the runtime and maintenance costs. Its presence does not
+make the port incomplete for the agreed scope or require a later rewrite. The port
+records the runtime boundary, source version, resource and permission limits, tests,
+and conditions for reconsidering it.
+
+The general job-host recipe is still unproven. Rendering supplies useful techniques;
+jobs need their own execution resources and capability contracts, as the
+[architecture](architecture.md#clean-first-hybrid-only-as-a-tradeoff) describes.
+
+## Validate initialization and continued maintenance separately
+
+Decided 2026-10-22. Extends the replay and second-app criteria in task 001.
+
+First, a session without the initiating conversation recreates the Snowtime port using
+the kit and declared source inputs. Evaluate requirements, design, correctness,
+performance evidence, and the quality of its handover. Then a different fresh session
+uses the resulting port alone to complete maintenance work and update its records.
+This tests whether the port can keep working well after initialization.
+
+SvelteKit and other framework tests follow. The render benchmark candidates in
+snowtime-native task 081.15 are candidates to assess, not proven end-to-end port targets.
+Successful rendering alone does not validate auth, data, API behavior, or maintenance.

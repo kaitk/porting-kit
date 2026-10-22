@@ -1,12 +1,15 @@
 # The port repository
 
-The kit generates a port as its own repository, kept in sync with the app it ports. This
-is the default layout until a better one is proven (2026-10-09). `snowtime-native`,
-the hand-built port of Snowtime (snowtime task 081), is the first repository in it, so
-regenerating it from the kit later can be compared file by file.
+The kit initializes an independently maintained project. Its repository must explain
+what it implements, why it is built that way, how to change it, and how to establish that
+it still works. A later maintainer or agent should be able to do that without the initial
+conversation or a newer copy of the kit.
 
-The rule: the port repository holds only what the port adds. Anything it can fetch from
-the app at the pinned commit, it fetches.
+The default layout comes from `snowtime-native`, the hand-built port of Snowtime
+(snowtime task 081). It is a starting point, not a permanent shape. Reuse source files
+from an exact, fetchable source commit while that serves the port; own the code and
+documentation that the port adds or changes. A replacement or diverging project may
+change its layout, frontend, dependencies, and relationship to the original.
 
 ## Layout
 
@@ -22,6 +25,8 @@ the app at the pinned commit, it fetches.
   conformance/      conformance tests the port adds beyond the app's own
   deploy/           the image build, compose files for benchmarks, the V8 archive script
   docs/             the port's architecture and its records (task history, measurements)
+  AGENTS.md         entry point for later work, linking the port's own instructions
+  README.md         scope, setup entry point, source baseline, and verification status
   .github/workflows/
   Cargo.toml, deny.toml, licenses/, rust-toolchain.toml
 ```
@@ -41,10 +46,11 @@ comparison would catch. `adapter/package.json` lists only what the app lacks, su
 the minifier. An app upgrade that breaks the adapter shows up when the pin moves, the sync
 point the kit plans for.
 
-The kit ships an adapter per frontend framework as a template the generated port owns. Its
-framework-independent parts, such as the minify and the bundle size checks, become a kit
-package once a second framework needs them. An app whose build the adapter can't drive
-needs another adapter, or the survey marks it as having none yet.
+The intended kit adapter is template code the generated port owns. Solid with Start is
+proven in snowtime-native; adapters for other frameworks still need to be written and
+tested. Framework-independent parts, such as minification and bundle-size checks, become
+a kit package once a second framework proves the reuse. An app whose build the adapter
+cannot drive needs another adapter, or the survey marks the gap.
 
 ## The pin
 
@@ -52,18 +58,40 @@ needs another adapter, or the survey marks it as having none yet.
   and ports what the app added is one commit, and CI checks the app out with the port.
   An `UPSTREAM` file with a fetch script would work as well; switch if submodules get in
   the way of agents or worktrees.
-- The pin records which of the app's features the port implements and which client
-  bundle it serves (2026-10-10). A `main` commit that doesn't change the port's
-  output in a meaningful way, such as tests, tooling, or docs, can move the pin with no
-  porting, after the port passes its bar at the new commit. The pin doesn't have to
-  follow every commit: when several people land features, the port catches up at its
-  own pace. Smaller steps keep each comparison to one change, so prefer them when they
-  come cheaply. The pin may be a local `main` commit that isn't pushed yet; CI then
-  can't fetch it, so push the app before the port.
-- The pinned commit's conformance tests and byte comparison define what "matches" means.
-  The port's README names the commit and the counts it passes.
+- The pin records the source baseline and, when the source builds the client, that
+  client's version. A separate coverage record names what is implemented, omitted,
+  retained in TypeScript, or deliberately different. Selectively porting a later feature
+  records its source commit without claiming all intervening features are implemented.
+- Moving the pin may also change the frontend, migrations, fixtures, and build tools.
+  Review those together. Even a docs-only source update must pass the checks applicable
+  to what the build consumes. Smaller steps keep a comparison understandable.
+- A local source commit may be used while developing, but a shared build must be able
+  to fetch it. Publication follows the user's authorization; a source pin is not
+  permission to push either repository.
+- The port's README names its baseline, coverage record, and last verified result. For
+  areas intended to match, the source's conformance and byte comparisons define parity.
+  Deliberate differences have their own acceptance tests. Passing a selected suite does
+  not establish whole-app parity.
+
+## The kit relationship
+
+Record the kit revision used at initialization and the recipes or templates actually
+used. This is provenance. A port does not need to track kit releases or periodically
+regenerate itself. Its current architecture and requirements govern later work.
+
+Kit crates are ordinary dependencies, pinned independently of the original-app baseline.
+The port may update, replace, vendor, or remove one as its needs change. Dependency
+maintenance and security checks remain part of maintaining the port, even when no kit
+update is adopted. Template code is owned locally; a newer template is a proposed change
+to review, not an instruction to overwrite local work.
+
+When a kit improvement is useful, apply the relevant part, test it against the port's
+contract, and record the new decision or dependency pin. Contributing a finding back to
+the kit is optional and does not block a port fix.
 
 ## What comes from the app
+
+In the default layout that shares the original frontend and schema:
 
 - The render bundle and client assets: the app's own build at the pin, then the adapter's
   build script. Neither is committed; CI and local runs build them and may cache them by
@@ -75,14 +103,121 @@ needs another adapter, or the survey marks it as having none yet.
 
 ## What the port owns
 
-- The Rust code, the adapter, and the comparison harness, until the kit extracts the
-  generic parts into crates and packages.
+- The application code, adapter, retained TypeScript jobs if any, and comparison harness.
+  The port chooses which generic components to take as dependencies.
 - Conformance tests the app hasn't taken. The kit suggests changes to the app that make
   later ports easier, and never requires them, so the harness runs the port's
   `conformance/` beside the app's. A test the app adopts moves out of the port's folder.
-- Its documentation and records. A generated port has no proof-of-concept history: it
-  starts with one commit, "Port at <app> <commit>". A hand-built port's history stays
-  where it was built, and its records move into `docs/`.
+- Its documentation and records, including the new port's own experiments and decisions.
+  It does not inherit the first port's task history as if those experiments ran here.
+  The initial accepted state records the source commit and verified scope; retaining
+  useful implementation commits is compatible with that baseline.
+
+## Documentation that stays useful
+
+Use the repository's established formats when they already serve these purposes.
+The following is the default division of responsibility, based on snowtime-native's
+architecture and task records. Keep each fact in one current location and link to its
+evidence rather than making every task repeat the whole project.
+
+| Record | What a future maintainer must be able to learn |
+| --- | --- |
+| `README.md` | Purpose, supported scope, source baseline, current limitations, how to start, and where verification is recorded. |
+| `AGENTS.md` and any agent-specific entry point | The port's rules, where to find current decisions, how to add a feature, and which checks apply. No dependency on agent memory. |
+| `docs/development.md` | Clean-checkout prerequisites, pinned tools, fixture preparation, local runs, build and check commands, generated files, and reproducible setup traps. |
+| `docs/port-status.md` | Source provenance, feature coverage, source-to-port mapping, retained TypeScript, omissions, intentional differences, and later selected upstream changes. |
+| `docs/architecture/` | The current design by area: ownership, runtime and database boundaries, interfaces, operational constraints, and why this design fits the target stack. |
+| `docs/decisions.md` or existing decision records | Dated choices, alternatives, evidence, costs, and what would justify reconsidering them. Superseded decisions point to their replacements. |
+| `docs/tasks/` | What changed or was tried, results and failed approaches, verification evidence, remaining questions, and the next actionable step. |
+| `docs/known-issues.md` | Active reproducible limitations, their impact, workaround where available, and a link to the owning task. Create it when there is an issue to record. |
+| Deployment and operations docs | Configuration, secrets, migrations, backup and restore, health and diagnostics, release and rollback, and resource limits for the supported deployment. |
+
+Small projects can combine records; these are responsibilities, not a required number
+of files. Do not create empty documents merely to fill the layout.
+
+### Coverage and differences
+
+Start `docs/port-status.md` with the source repository, baseline commit, kit provenance,
+and the scope agreed with the user. Add a row per meaningful feature or area; use finer
+rows where compatibility, implementation, or source version differs. A useful row records:
+
+- Source paths or symbols and the relevant commit; target modules and routes.
+- Coverage: complete for the agreed scope, partial, deferred, deliberately omitted,
+  or removed after the initial port.
+- Implementation: native code, a library, retained TypeScript job, or a combination.
+  An implemented TypeScript feature is covered functionality, not an unported omission.
+- Behavioral differences and the linked decision, including changes made to fit the
+  target language, framework, database, or deployment.
+- Verification: relevant tests or comparison suite, the last verified revisions, and
+  any uncovered cases. Keep detailed run evidence in its task.
+
+The source pin alone cannot express a partial or diverging port. Conversely, do not
+build a duplicate symbol database: map at the level where it helps someone locate and
+assess a change. Record migration and shared dependency effects that cross feature rows.
+
+Snowtime provides concrete examples for this record:
+
+- Its native session check omits the TypeScript cookie cache because the database is
+  local; immediate revocation is a deliberate behavior difference (snowtime task 091;
+  snowtime-native task 081.03).
+- Native auth input bounds deliberately differ and have native tests; oversized requests
+  are not masked or counted as byte-equal comparisons (snowtime-native task 081.31).
+- API-key last-use writes are sequenced differently to fit the single writer, while the
+  response still waits for the save attempt (snowtime-native task 081.38).
+- Organization and passkey library experiments were rejected after comparison. Their
+  evidence and reconsideration conditions explain why port-owned code remains
+  (snowtime-native tasks 081.39 and 081.40).
+
+### Current design and historical evidence
+
+Architecture describes what the repository does now. Decision records explain why.
+Tasks retain the history of trials, including failures and measurements that no longer
+describe the current version. Update the current architecture and coverage with a change;
+preserve an old task's evidence and clearly label a superseded conclusion.
+
+Record enough to reproduce an experiment: source and port revisions, relevant dependency
+versions, commands, fixture identity, environment, result, and interpretation. State what
+was not tested. Keep a durable summary and a fetchable artifact or commit for evidence
+that matters to the decision. A local temporary patch can help during work but cannot
+be the only surviving explanation of a rejected approach.
+
+## Maintaining the port
+
+These steps apply in an ordinary development session. The kit skill is optional after
+initialization; neither scheduled kit use nor automatic synchronization is required.
+
+1. **Establish the current state.** Read the port's instructions, scope, architecture,
+   coverage, and relevant task records. Confirm which source revision a requested change
+   comes from, if any, and which intentional differences must remain.
+2. **Assess the change.** Compare the relevant source changes with the recorded baseline
+   or feature revision. Trace effects on data, clients, auth, jobs, rendering, deployment,
+   and shared contracts. Agree any change in scope or behavior with the user. An
+   upstream commit is input to that decision, not a requirement to adopt every change.
+3. **Implement against the current design.** Reuse local abstractions and accepted
+   decisions. Keep generator inputs and outputs consistent. For a retained TypeScript
+   feature, review its bundle, runtime, host interface, permissions, and dependency pin
+   as part of the feature.
+4. **Verify.** Run the affected checks and the repository's required integration bar.
+   Compare shared behavior; test deliberate differences directly. Check data and
+   migration effects, and rerun the relevant performance gate for changes that can affect
+   its budget. A failed run is evidence to investigate, not a new baseline to accept
+   silently.
+5. **Update the durable state.** Record the source change adopted, the feature coverage,
+   decisions, verification, and unresolved issues in the same change. Move the source
+   pin only when the files consumed from it and the recorded coverage are consistent.
+   Update setup or operations instructions when their commands or assumptions change.
+
+The initial port supplies executable checks and CI appropriate to its scope, with
+fixtures and documented commands. Important behavior should be guarded by those checks,
+not by a future agent remembering prose. Keep production configuration distinct from
+benchmark overrides, and define the scope and exclusions of parity and performance
+checks. Native tests continue to protect independent features if comparison with the
+original is eventually retired.
+
+A fresh session maintaining the generated port is a separate acceptance test from the
+initial port replay. It must discover the current state, implement a representative
+change, run the checks, and update the records using the port alone. See
+[task 001](../tasks/001-kit-acceptance.md).
 
 ## Findings from snowtime-native
 

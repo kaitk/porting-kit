@@ -8,12 +8,16 @@ or 084 refer to snowtime's and snowtime-native's task records;
 
 ## Goal
 
-The goal (2026-10-03): what task 081 learns becomes a separate repository of recipes,
-skills, crates, and codemods for porting a modern cloud app to one Rust server with a
-local SQLite database, first on one instance and later with Turso. AI sessions do the
-porting; the repository gives them guidelines, because each port differs. It starts from
-Snowtime's stack (SolidJS, TanStack Start, Drizzle, Better Auth) and may later cover
-others, such as SvelteKit or Postgres.
+The kit helps an explicitly invited agent understand an app, establish the user's
+requirements, and deliver a well-founded port that its own repository can keep working
+well. Recipes, measured decisions, crates, and codemods support that outcome. A successful
+initial build is part of it; maintainable architecture, useful documentation, reproducible
+checks, and a way to handle later changes are also deliverables.
+
+The first supported direction is a TypeScript cloud app to a Rust server with local
+SQLite, starting with Snowtime's stack: SolidJS, TanStack Start, Drizzle, and Better Auth.
+Turso and other frameworks or databases are later work. The survey establishes how much
+of the kit fits each app; the kit does not claim a recipe for an untested stack.
 
 The stretch goal (2026-10-05) is that, where an app's stack matches closely enough,
 a session ports an app of Snowtime's size from its server functions in one run, with the
@@ -23,20 +27,29 @@ when a port isn't worth doing.
 
 ## Shape
 
-The kit works like a project template that agents run (2026-10-08):
+The kit works like a project template that agents run (2026-10-08), with the lifecycle
+clarified on 2026-10-22:
 
-- Agents run its workflow: they
-  ask the questions, plan the details, and generate an opinionated first version of the
-  port as its own repository, kept in sync with the original. After that the project is
-  the user's to tune, and later porting agents port into whatever it has become.
+- The user starts the port skill explicitly. It surveys suitability, asks about the
+  requirements the code cannot establish, proposes options, and implements the agreed
+  scope. A survey request alone does not authorize a port.
+- The generated repository belongs to its owner. It may follow the original, take only
+  selected changes, replace it, change architecture, retain some TypeScript, drop
+  features, or be discontinued. Later porting starts from that repository's current
+  decisions. A kit update does not reset them.
 - Its crates are opinionated and fast, but general enough for a broader range of
   projects. Each one is optional and plugs in alone, such as the in-process edge in place
   of a reverse proxy, or the rate limits. Code shaped by one app is template code that
   the generated project owns, not a crate.
-- Staying in sync is what the kit generates for: documentation, tests (conformance and
-  the byte comparison), and task records that make each later feature port work, with a
-  pin to the original's commit. The kit suggests changes to the original repository that
-  make later ports easier, and never requires them.
+- The port keeps the setup, source references, coverage, decisions, experiments, tests,
+  and operating instructions needed to maintain it independently. Its source-app pin
+  records a baseline; its coverage record explains omissions, later selected changes,
+  and deliberate differences. See [the port repository](port-repository.md).
+- Updating the original-app baseline and adopting kit changes are separate choices.
+  The port need not stay synchronized with the kit. It may reuse newer recipes or update
+  individual kit dependencies when useful, through its own review and verification.
+  The kit suggests source-app changes that make the port easier and asks the user before
+  relying on them; access to both repositories does not authorize changing both.
 - A separate repository is the main pattern, not the only one. A proof of concept can
   start in the original repository, which usually needs TypeScript changes too: a minimal
   port of the critical paths to Rust, with the rest run through V8 if needed, as task 081
@@ -49,8 +62,9 @@ The kit works like a project template that agents run (2026-10-08):
   commit it matches, and that commit's conformance suite and byte comparison define the
   match. Once the kit exists, regenerating `snowtime-native` from it measures the kit
   against the hand-built port. A second, different app tests that the crates are general.
-- An index skill ([`skills/port`](../skills/port/SKILL.md)) routes a session to recipes
-  by layer: frontend framework, server framework, ORM, auth, and database. Recipes are
+- A manually invoked index skill ([`skills/port`](../skills/port/SKILL.md)) routes a
+  session to recipes by layer: frontend framework, server framework, ORM, auth, and
+  database. Recipes are
   Markdown in [`recipes/`](../recipes/README.md), one per library under its layer, and
   only the index is a skill (2026-10-11).
 - Each recipe says when it applies, its steps, its pitfalls, and how to verify the
@@ -81,8 +95,9 @@ layering does.
 
 ## The workflow
 
-A port runs in three steps (2026-10-03), and the session proposes nothing before the
-user has checked what it found.
+A port starts with three steps (2026-10-03). The session checks its findings with the
+user before proposing the implementation. The purpose is to establish what a good port
+means for this project, including whether to proceed at all.
 
 1. **Survey.** The session reads the app and lists everything that needs porting, by
    layer: frontend and server framework, how the client reaches the server (server
@@ -96,6 +111,85 @@ user has checked what it found.
    deployments must keep working, and whether the old backend stays.
 3. **Propose.** Only then does the session propose a port for each item, from the
    recipes, or marks the item as having no recipe yet.
+
+### Establish the requirements
+
+Read the repository's current architecture, task records, tests, and deployment setup
+before asking for facts already recorded. Distinguish a current decision from a rejected
+experiment or an old task's starting assumptions. Present a short fit assessment: good
+fit, workable with named gaps, or poor fit, with evidence and uncertainty per layer.
+Technical transferability and whether the work is worthwhile are separate judgments.
+
+Resolve the questions that affect the design with the user:
+
+- The purpose of the port: hosting cost, resource limits, deployment options, ownership,
+  maintainability, or another concrete need; how success will be judged.
+- Required features and deployments, deliberate omissions, and whether the source app
+  remains a supported alternative or the port replaces it.
+- Required compatibility: API and error behavior, database and migrations, existing
+  accounts and sessions, clients, page behavior, and any in-flight protocols at cutover.
+- Target language and framework constraints, acceptable dependencies and runtime costs,
+  rendering needs, and whether a TypeScript fallback is acceptable for particular work.
+- Expected usage and resource budgets, available measurements, and the limits on time,
+  compute, and external services for implementation and validation.
+- The intended maintenance workflow: selected upstream features, independent development,
+  dependency updates, deployment, and who will operate the result.
+
+Ask focused questions in stages. Explain a recommendation and its trade-offs rather than
+making the user choose implementation details without context. Record the agreed scope,
+open questions, and acceptance checks in the port. If new evidence would change that
+agreement, bring the specific change back to the user.
+
+### Choose the implementation tools
+
+Choose per area between a tested library, kit crate, proven recipe, mechanical code
+generation, port-owned code, and an agreed hybrid. Assess actual compatibility,
+maintenance cost, and measured behavior. Availability of a Rust library alone does not
+establish that it implements the app's use of its TypeScript counterpart: snowtime-native
+tasks 081.39 and 081.40 kept organization and passkey code after comparing the libraries.
+
+Use generators for repeatable transformations with a checked contract. The port records
+which files are generated, their inputs and command, and whether regeneration overwrites
+local edits. Handwritten application code remains ordinary code the port can change.
+Evaluate a representative slice before scaling an uncertain approach across the app.
+
+Subagents are optional and require the user's explicit approval before they are started.
+Approval to port an app does not imply approval to delegate. When approved, give them
+bounded tasks with useful interfaces, such as an independent review or an isolated domain;
+record what they checked. A single-agent session must be able to follow the same workflow.
+
+The documentation and skill should work with Sol 6.1 and Claude Opus 5.5 as target agents,
+and remain readable by developers without either tool. These are validation targets,
+not claims that the full workflow has passed on both. Record the actual model, tool
+environment, user interventions, and result of each replay in [task 001](../tasks/001-kit-acceptance.md).
+
+### Implement, verify, and hand over
+
+Implement the agreed design in reviewable slices. Port behavior deliberately: use the
+target language's ownership, error handling, concurrency, and library conventions where
+they fit, and keep a source map useful enough to review later changes. Structural
+similarity is a maintenance aid, not a requirement to reproduce an unsuitable design.
+
+Define the verification bar from the agreed scope. Shared behavior uses the source app's
+conformance and comparison checks. Deliberate differences have a decision and tests for
+the port's intended behavior; they are not silently masked or counted as parity. Include
+state and migrations, refusal and cancellation behavior, and relevant end-to-end flows.
+Performance claims name the workload, environment, source and port commits, and limits
+of the measurement. Whole-system review complements checks on individual ported routes.
+
+Before handover, verify a clean-checkout build and the documented development and check
+commands. Leave the current architecture, decisions, coverage, rejected approaches,
+known issues, and operating instructions in the port. Preserve evidence that another
+session can retrieve; an expiring scratch directory is not the only record of a decision.
+
+### Continue from the port's own state
+
+Later work starts with the port's instructions and current architecture, its source
+baseline and coverage, and relevant tasks. Establish whether the requested change is an
+upstream feature, a port-specific feature, a dependency update, or a repair. Evaluate
+the change against the current design, run the applicable checks, and update the records
+in the same change. The [maintenance workflow](port-repository.md#maintaining-the-port)
+does not require a kit checkout, a kit upgrade, or the initiating conversation.
 
 ## Starting from server functions
 
@@ -160,6 +254,11 @@ where some code keeps running as TypeScript, is a tradeoff the session proposes 
 the clean design isn't straightforward, and it says what the hybrid costs and how the app
 would leave it later (2026-10-05).
 
+This is a starting recommendation for the agreed scope. The user may choose a hybrid
+as the maintained design; retaining an infrequent feature in TypeScript does not create
+an obligation to rewrite it later. Record why it stays, its runtime and resource costs,
+and what evidence would justify changing that choice.
+
 Usage and profiles decide where the line goes, not guesses: the app's access logs or
 analytics show which calls are used and how often, and a profile under the load model
 shows where the CPU goes (task 081.12). The hot, central calls are ported natively. A long
@@ -177,8 +276,10 @@ as recipes:
     idle, since a rarely used job shouldn't hold memory. A slow job never blocks pages.
   - **Trusted like the TypeScript server.** A job can reach the network. It gets only the
     secrets its job kind names, passed explicitly, and not the renderers' restrictions.
-  - **The database only through the host,** because two processes must not write one
-    SQLite file (task 043). A Drizzle-based library uses Drizzle's `sqlite-proxy` driver,
+  - **The database only through the host,** preserving this design's single writer and
+    admission controls. Snowtime task 043 records the driver failure and contention
+    that informed that choice; it is not a general prohibition on SQLite clients in
+    multiple processes. A Drizzle-based library uses Drizzle's `sqlite-proxy` driver,
     whose callback forwards each statement to the host's lanes. State a library keeps in
     memory, such as a rate limiter's counters, moves to the database, because a job
     process can exit at any time.
@@ -194,6 +295,14 @@ as recipes:
   round trips (batches only, or a short deadline); and Bun-only jobs on V8-only images,
   which must either ship Bun or drop the feature. A job that streams its answer, such as
   an AI SDK's, has no recipe yet.
+
+  This is a planned job-host design. Snowtime's rendering proves useful embedding and
+  host-call techniques, but does not prove a general TypeScript job runner. A first job
+  must establish its request/result contract, authentication and authorization boundary,
+  queue and execution limits, cancellation, failure recovery, and side-effect behavior.
+  In particular, a cancelled caller does not establish that a payment or other external
+  write did not happen; the feature needs its own retry and idempotency policy. Record
+  the job's source version and tests in the port's coverage record like a native feature.
 
 - **Server functions served from Rust**, for apps where moving to an API costs too much,
   such as hundreds of server functions of kinds 1 to 3 (2026-10-05). The host
@@ -221,6 +330,11 @@ The survey decides which of these the port is, since each changes the recipe:
   standing constraint. After cutover the contract can change freely, and the TypeScript
   server tests are ported to Rust or retired. The recipe adds cutover, data, and rollback.
   Not written yet.
+
+Either kind can cover an agreed subset and can change direction later. A port that stops
+following the original keeps the provenance and tests it still needs; it does not have
+to retain an unused frontend, source checkout, or comparison suite forever. Record the
+decision and replace any removed verification on which continued correctness depends.
 
 ## Does the app need server rendering
 
@@ -278,8 +392,9 @@ The survey says plainly where a port is doubtful:
 Only what an AI session can't quickly work out itself, because models keep improving at the
 rest:
 
-- The method: port from a given commit, the conformance tests define done, make it work
-  and then make it fast, measure against a load model (task 078).
+- The method: establish requirements, port from a recorded baseline, verify shared and
+  intentionally different behavior, make it work and then make it fast, and leave a
+  maintainable project. Measure against an agreed load model (snowtime task 078).
 - Findings that took measurement or failure to learn, such as Start addressing server
   functions by a build hash (task 081.02), what each renderer costs in memory (task
   081.01), better-auth-rs hashing passwords with Argon2 where Better Auth uses scrypt, and
@@ -297,13 +412,15 @@ rest:
   - the Drizzle-compatible migrator (`MIGRATE_ON_START`);
   - Better Auth-compatible email sign-in, session cookie, origin checks, and scrypt;
   - the in-process edge (subtask 07);
-  - the render host: the renderer pool with its V8 and Bun sidecar engines, memory
-    sizing, the sidecar's least-privilege start (environment, per-render token,
-    seccomp, Landlock), and the API transport, in process for V8 and over the socket for Bun (subtasks 01 and 16). The bundle and manifest, the engine's
-    bootstrap, the request kinds a framework renders, and the delivery policy (whole or
-    streamed) are adapter interfaces, not fixed in the crate;
-  - the lane: admission with waiting bounded by count and time, refusal, and a restart
-    budget for workers that outlive a job (subtasks 10 and 17);
+  - the render host: the proven V8 pool, memory sizing, and in-process API transport
+    (subtask 01). The Bun sidecar and its constrained startup and socket transport are
+    planned and parked (subtask 16). Extract them only after they are proven. The bundle
+    and manifest, engine bootstrap, framework request kinds, and delivery policy (whole
+    or streamed) are adapter interfaces;
+  - the lane: admission with waiting bounded by count and time, refusal, and cancellation
+    behavior (subtasks 10 and 17). The current database lane catches job panics; the
+    renderer's restart budget is separate. General worker supervision is not part of
+    the first extraction unless separately proven;
   - the conformance and byte-comparison harness (`native/bench/conformance.ts` and
     `compare.ts`); the tests themselves (`conformance/`) stay with the app.
 
@@ -315,11 +432,11 @@ rest:
   conversions that recur across apps: valibot schemas to Rust input structs and
   their field tables, Hono routes to Axum routes, client functions from routes, and a
   Drizzle schema to the Rust models. With these, a session writes the rules and little else.
-- The render host recipe: rendering in an embedded V8 isolate or a Bun sidecar, with
-  native code for the hot paths. Other code that is costly to port and rarely run, such as
-  Paraglide's message formatting or the export, runs as a JS job ("Clean first, hybrid
-  only as a tradeoff"). Drizzle's migrations are SQL files with a journal table, so Rust
-  applies them without JS.
+- The render host recipe, still to be written from the V8 port. The Bun sidecar and a
+  general host for infrequent TypeScript jobs are separate planned work ("Clean first,
+  hybrid only as a tradeoff"). Their future reuse must not be presented as an existing
+  job runner. Drizzle's migrations are SQL files with a journal table, so Rust applies
+  them without JS; task 081.33 records migration behavior that must be preserved.
 - Where the port lives. A port that lags its app on purpose records the app commit it
   implements and builds the app's bundle and assets from that commit. Two layouts, with
   when each fits. The default since 2026-10-09 is a separate repository laid out as
@@ -334,3 +451,8 @@ rest:
 
 App-specific code stays out: the rules, pages, and schemas are the app's. The crates hold
 only what every port of the stack repeats.
+
+The first auth and lane boundaries remain proposals. [Task 002](../tasks/002-crate-boundary-review.md)
+reviews the seams and the behavior that extraction must preserve. Keeping integration
+code in a port is an intended outcome when extracting it would make the crate depend on
+that port's schema, HTTP policy, or runtime ownership.
