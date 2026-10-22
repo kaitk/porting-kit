@@ -29,7 +29,7 @@ first release.*
 |---|---|---|
 | 🟡 | Auth | Better Auth compatibility in port-owned Rust: sessions, password, OAuth (Google, GitHub, Microsoft), passkeys, API keys, and organizations, proven for Snowtime's scope ([recipe](recipes/auth/better-auth.md)). |
 | 🟡 | Database and ORM | Drizzle on SQLite to `rusqlite` with SQL strings, and Drizzle's migrations applied by the binary ([recipe](recipes/database/drizzle.md)). |
-| ⚪ | Server | Server functions or Hono routes to an Axum JSON API ([architecture](docs/architecture.md#starting-from-server-functions)). |
+| 🟡 | Server | A Hono JSON API to Axum ([recipe](recipes/server/hono.md)); server functions first move to an API ([architecture](docs/architecture.md#starting-from-server-functions)). |
 | ⚪ | Frontend | Pages rendered by the app's own server bundle in V8, or a static frame from Rust. Solid with Start is proven in snowtime-native; other frameworks need their own adapter. |
 | ⚪ | Turso | Planned after SQLite on one instance. |
 | ⚪ | Postgres | Not planned yet. |

@@ -30,7 +30,7 @@ deliberate differences and omissions unless the user changes them.
 | ------------- | ----------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
 | Auth          | Better Auth | [better-auth.md](../../recipes/auth/better-auth.md) | proven for Snowtime's scope: port-owned compatibility code, no library |
 | Database, ORM | Drizzle     | [drizzle.md](../../recipes/database/drizzle.md)     | proven for SQLite in-process: `rusqlite` with SQL strings, Drizzle's migrator |
-| Server        | TanStack Start server functions, Hono | not written               | see architecture, "Starting from server functions"                     |
+| Server        | Hono JSON API | [hono.md](../../recipes/server/hono.md) | proven for Snowtime's API; server functions first move to an API (architecture) |
 | Frontend      | SolidJS with TanStack Start | not written                 | see architecture, "Layers that swap independently"                     |
 
 A library missing here has no recipe: say so in the survey rather than guess. Before
