@@ -29,7 +29,7 @@ deliberate differences and omissions unless the user changes them.
 | Layer         | Library     | Recipe                                              | Status                                                                 |
 | ------------- | ----------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
 | Auth          | Better Auth | [better-auth.md](../../recipes/auth/better-auth.md) | proven for Snowtime's scope: port-owned compatibility code, no library |
-| Database, ORM | Drizzle     | not written                                         |                                                                        |
+| Database, ORM | Drizzle     | [drizzle.md](../../recipes/database/drizzle.md)     | proven for SQLite in-process: `rusqlite` with SQL strings, Drizzle's migrator |
 | Server        | TanStack Start server functions, Hono | not written               | see architecture, "Starting from server functions"                     |
 | Frontend      | SolidJS with TanStack Start | not written                 | see architecture, "Layers that swap independently"                     |
 

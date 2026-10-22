@@ -23,6 +23,8 @@ recipes/
   README.md          this file
   auth/
     better-auth.md
+  database/
+    drizzle.md
 ```
 
 A layer with no recipe yet has no directory. The index lists it as not written.
