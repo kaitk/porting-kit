@@ -7,11 +7,11 @@ applies: SolidJS with TanStack Start, server-rendered and hydrated, its pages re
 versions:
   solid-js: 1.9.16
   "@tanstack/solid-start": 1.168.57
-  deno_core: 0.405 (V8 149.4)
+  deno_core: 0.413 (V8 150.4)
   rust: 1.99
 evidence:
   - snowtime-native 081.01 (server rendering), 081.14 and 081.19–081.22 (render CPU)
-  - snowtime-native 081.16 (JavaScriptCore and the Bun sidecar, parked), 081.18 (newer V8)
+  - snowtime-native 081.16 (JavaScriptCore and the Bun sidecar, parked), 081.18 and 081.43 (newer V8)
   - snowtime task 079 (static shells, rejected)
 ---
 
@@ -80,8 +80,10 @@ processes to start, confine, and restart, and stays parked behind the same inter
   young generation: 20–50 MB per renderer for 3–11% less render CPU (081.14).
 - **Start addresses server functions by a build hash.** A port can't call them stably;
   move them to the API first (081.02).
-- **A newer V8 isn't automatically faster.** V8 150.4 left the costly GC behaviors
-  unchanged (081.18); measure each upgrade with the gate.
+- **Measure each V8 upgrade with the gate.** Microbenchmarks showed V8 150.4 leaving the
+  costly GC behaviors unchanged (081.18), yet on the real bundle it cut render p95 by up
+  to 8.6% at the same CPU (081.43). A deno_core bump also moves `deno_web`, `deno_webidl`,
+  and any vendored `deno_fetch` scripts together.
 - **Engines that rendered but lost:** JavaScriptCore (memory, unstable embedding, LGPL),
   SpiderMonkey (memory, startup), QuickJS (needs Intl polyfills, too slow), Boa (error
   pages), Perry (didn't compile the bundle).
@@ -95,7 +97,7 @@ processes to start, confine, and restart, and stays parked behind the same inter
 
 ## Reference code
 
-snowtime-native at `4dc2f0c`:
+snowtime-native at `838e1fa`:
 
 | Path | What it does | Generic or policy |
 | ---- | ------------ | ----------------- |
