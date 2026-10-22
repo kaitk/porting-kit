@@ -43,7 +43,7 @@ first release.*
 
 | | Tool | Notes |
 |---|---|---|
-| 🟡 | Schema generator | Rust input structs and validation from valibot schemas, with the app's first-issue messages and keys, and a differential test against the app ([README](tools/schema-gen/README.md)). Being proven in snowtime-native task 081.45. |
+| 🟡 | Schema generator | Rust input structs and validation from valibot schemas, with the app's first-issue messages and keys, and a differential test against the app ([README](tools/schema-gen/README.md)). Proven in snowtime-native task 081.45, where it replaced the hand-written input tables. |
 
 ## How a port runs
 

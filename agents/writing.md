@@ -14,6 +14,8 @@ Substantial doc drafts and requested prose reviews follow
   silently resolving them while copyediting.
 - Record a decision with its reason and the trade-off that matters. Keep each fact in
   one place and link to it elsewhere. Use absolute dates for dated events.
+- Link another repository at a commit, never at a branch, so its cleanups don't break the
+  reference: a port or the source app may archive the record later.
 - A number carries its source: the port, its task record, and the commit measured. A
   claim without a measurement says so.
 - Match the document's format. Recipes follow `recipes/README.md`, tasks follow

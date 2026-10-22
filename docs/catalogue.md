@@ -73,7 +73,7 @@ belong in [the port repository](port-repository.md#documentation-that-stays-usef
   waiting, restart budgets) with `tokio::time::pause`, `turmoil`, or `loom`, kept only
   if they find bugs the current tests miss
 - Better Auth through an app-owned `rusqlite` store on the host's lanes (question 5,
-  [auth spike](https://github.com/Snowhound/snowtime-native/blob/main/docs/tasks/auth-spike.md), 2026-10-06). The 1,582-line adapter proves storage and
+  [auth spike](https://github.com/Snowhound/snowtime-native/blob/4f7d217/docs/tasks/auth-spike.md), 2026-10-06). The 1,582-line adapter proves storage and
   selected flows without SeaORM or sqlx. Reject a library-owned pool where the host
   owns admission and one writer. Bound an async transaction's writer lifetime
   separately from admission. Keep the app's signed-cookie check at the boundary.

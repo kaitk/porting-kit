@@ -91,4 +91,5 @@ Start's serializer tags every value. Snowtime moved 41 functions in 9 files.
 Snowtime (github.com/Snowhound/snowtime) at `b41e081`, where task 084 closed:
 `src/lib/api/client.ts`, `transports.ts`, `wire.ts`, and `operations.ts`; `src/server/operations.server.ts` and
 `api.server.ts`; and `conformance/`. The transferability report is task 084's
-"Transferability" section in `tasks/000-archive/084-server-functions-or-api.md`.
+"Transferability" section, `tasks/000-archive/084-server-functions-or-api.md` at that
+commit.
