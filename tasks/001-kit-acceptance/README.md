@@ -94,7 +94,7 @@ claiming the next run validates the same workflow.
 - **Agent:** Claude Opus 5.5 in Claude Code, a fresh subagent with only its brief, no
   subagents of its own; about 6.5 minutes and 150k tokens. Read about 11 kit files and
   20 app files in full, and grepped about 60 more.
-- **Result:** a 488-line survey. It reached the decisions the first port made: a second
+- **Result:** a 488-line survey, kept as [pilot-1-survey.md](pilot-1-survey.md). It reached the decisions the first port made: a second
   backend for self-hosting with production staying on Vercel and Turso, the app moved to
   a JSON API first, server rendering in V8, and Better Auth upgraded to 1.7.7. Its 17
   questions covered what the maintainer decided in task 081, plus the change rate (104
@@ -132,7 +132,7 @@ claiming the next run validates the same workflow.
 - [ ] Tool choices are justified per area, including library compatibility and generator
       ownership; no subagents are started without explicit user approval
 - [ ] Generated repositories contain the records and executable checks in
-      [the port repository](../docs/port-repository.md#documentation-that-stays-useful),
+      [the port repository](../../docs/port-repository.md#documentation-that-stays-useful),
       with current architecture distinct from historical experiments
 - [ ] Native features, retained TypeScript, partial coverage, omissions, and intentional
       differences are represented without making false whole-app parity claims
@@ -145,12 +145,12 @@ claiming the next run validates the same workflow.
 ### Proven content and initial replay
 
 - [ ] Recipes written only for steps proven in task 081's port
-- [ ] [The catalogue](../docs/catalogue.md) written, one entry per decision, with its
+- [ ] [The catalogue](../../docs/catalogue.md) written, one entry per decision, with its
       evidence
-- [ ] The crates in [architecture](../docs/architecture.md#what-goes-in) extracted from task 081's port, with their tests, and the port
+- [ ] The crates in [architecture](../../docs/architecture.md#what-goes-in) extracted from task 081's port, with their tests, and the port
       using them
 - [ ] Codemods only for conversions done by hand at least once, with their tests
-- [ ] The workflow in [architecture](../docs/architecture.md#the-workflow) written as the repository's entry point: the survey with the
+- [ ] The workflow in [architecture](../../docs/architecture.md#the-workflow) written as the repository's entry point: the survey with the
       kind of port and the verdict, the user's check, then proposals
 - [ ] The transferability check for server functions written as a recipe, which on this
       app's 41 gives task 084's table, and the middle step to the API written as a recipe

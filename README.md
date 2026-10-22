@@ -95,7 +95,7 @@ task 081.01):
 
 The kit's own acceptance test is a fresh session recreating this port, then another
 fresh session maintaining the result from its own records, then a different app and
-framework ([task 001](tasks/001-kit-acceptance.md)). None has run yet.
+framework ([task 001](tasks/001-kit-acceptance/README.md)). None has run yet.
 
 ## Credits
 

@@ -217,7 +217,7 @@ original is eventually retired.
 A fresh session maintaining the generated port is a separate acceptance test from the
 initial port replay. It must discover the current state, implement a representative
 change, run the checks, and update the records using the port alone. See
-[task 001](../tasks/001-kit-acceptance.md).
+[task 001](../tasks/001-kit-acceptance/README.md).
 
 ## Findings from snowtime-native
 

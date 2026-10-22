@@ -157,7 +157,7 @@ code (tasks 081.39, 081.40, and 081.42). A generated file records its inputs and
 Subagents run only with the user's explicit approval, and the workflow works without them.
 
 The target agents and their replay results are recorded in
-[task 001](../tasks/001-kit-acceptance.md).
+[task 001](../tasks/001-kit-acceptance/README.md).
 
 ### Implement, verify, and hand over
 
