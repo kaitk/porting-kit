@@ -70,3 +70,10 @@ sibling checkout.
 - One lean sentence in imperative mood, at most 72 characters.
 - No body, no `Co-Authored-By` or any other trailers.
 - Push only when asked. Fetch and rebase before pushing.
+
+## Pull requests
+
+- Plain prose about the change: what, why, and one line on the checks.
+- No "Generated with Claude Code" line or any other attribution.
+- Run a new pull request's text through `.claude/skills/google-style` when you first
+  write it.
