@@ -46,5 +46,5 @@ tracked there. The kit's tasks hold what spans ports.
 | Open work | Remaining outcome or dependency |
 |---|---|
 | 001: the kit's acceptance criteria | Initial replay, independent maintenance, reusable content, and later apps/frameworks. |
-| 002: the first crate boundary review | Proposed ownership and runtime contracts; maintainer decision before extraction. |
+| 002: the first crate boundary review | Three crates agreed 2026-10-22; the review's contracts guide the extraction in 081.41. |
 | snowtime-native 081.41: the first crates | Lane, Better Auth sessions, and Better Auth compatibility, after 081.42 moves the port back to its own auth code. |
